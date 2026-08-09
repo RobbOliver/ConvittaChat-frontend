@@ -3,6 +3,7 @@ import { useSendMessage } from '../../hooks/useSendMessage';
 import { contactDisplayName, formatTime } from '../../lib/format';
 import type { ConversationDetail } from '../../types';
 import { Avatar } from './Avatar';
+import { MediaAttachment } from './MediaAttachment';
 
 interface Props {
   conversation: ConversationDetail;
@@ -54,24 +55,45 @@ export function MessageThread({ conversation, onBack }: Props) {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-mist/40 px-4 py-5 sm:px-5">
-        {conversation.messages.map((message) => (
-          <div key={message.id} className={`flex ${message.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
-                message.direction === 'OUTBOUND' ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
-              }`}
-            >
-              <p>{message.content}</p>
-              <p
-                className={`mt-1 font-mono text-[10px] ${
-                  message.direction === 'OUTBOUND' ? 'text-white/45' : 'text-ink/35'
+        {conversation.messages.map((message) => {
+          const isOutbound = message.direction === 'OUTBOUND';
+          const tone = isOutbound ? 'outbound' : 'inbound';
+
+          if (message.mediaType === 'STICKER') {
+            return (
+              <div key={message.id} className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
+                <MediaAttachment message={message} tone={tone} />
+                <span className="mt-1 font-mono text-[10px] text-ink/35">{formatTime(message.createdAt)}</span>
+              </div>
+            );
+          }
+
+          return (
+            <div key={message.id} className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`flex max-w-[85%] flex-col rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
+                  isOutbound ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
                 }`}
               >
-                {formatTime(message.createdAt)}
-              </p>
+                {message.mediaType && (
+                  <div className="p-1.5 pb-0">
+                    <MediaAttachment message={message} tone={tone} />
+                  </div>
+                )}
+                <div className="px-3.5 py-2.5">
+                  {message.content && <p>{message.content}</p>}
+                  <p
+                    className={`font-mono text-[10px] ${message.content ? 'mt-1' : ''} ${
+                      isOutbound ? 'text-white/45' : 'text-ink/35'
+                    }`}
+                  >
+                    {formatTime(message.createdAt)}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <form className="border-t border-line bg-paper p-3 sm:p-3.5" onSubmit={handleSubmit}>

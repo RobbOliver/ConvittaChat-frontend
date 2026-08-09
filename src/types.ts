@@ -6,6 +6,8 @@ export type MessageStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED'
 
 export type WhatsappSessionStatus = 'PENDING_QR' | 'CONNECTED' | 'DISCONNECTED';
 
+export type MessageMediaType = 'IMAGE' | 'STICKER' | 'VIDEO' | 'AUDIO' | 'DOCUMENT';
+
 export interface Contact {
   id: string;
   whatsappJid: string;
@@ -20,6 +22,9 @@ export interface Message {
   direction: MessageDirection;
   status: MessageStatus;
   content: string | null;
+  mediaType: MessageMediaType | null;
+  mediaMimeType: string | null;
+  mediaFileName: string | null;
   createdAt: string;
 }
 
