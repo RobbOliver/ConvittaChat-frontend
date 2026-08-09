@@ -1,39 +1,41 @@
-import type { Conversation, ConversationStage } from '../../types';
-import { StageBadge } from './StageBadge';
-
-const STAGES: ConversationStage[] = ['NEW', 'IN_PROGRESS', 'WON', 'LOST'];
+import type { Conversation } from '../../types';
+import { getInitials } from '../../lib/format';
+import { StageFunnel } from './StageFunnel';
 
 export function PipelinePanel({ conversation }: { conversation: Conversation }) {
   return (
-    <aside className="flex w-72 shrink-0 flex-col gap-4 border-l border-neutral-200 px-4 py-4 dark:border-neutral-800">
+    <aside className="flex h-full w-72 shrink-0 flex-col gap-6 overflow-y-auto border-l border-line bg-paper px-5 py-6">
       <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-          Estágio
+        <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/40">
+          Funil de vendas
         </h3>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {STAGES.map((stage) => (
-            <div key={stage} className={stage === conversation.stage ? '' : 'opacity-40'}>
-              <StageBadge stage={stage} />
-            </div>
-          ))}
+        <div className="mt-3">
+          <StageFunnel stage={conversation.stage} />
         </div>
       </div>
 
+      <div className="h-px bg-line" />
+
       <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+        <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/40">
           Responsável
         </h3>
-        <p className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
-          {conversation.assigneeName ?? 'Não atribuído'}
+        <p className="mt-2 text-sm text-ink">
+          {conversation.assigneeName ?? <span className="text-ink/40">Não atribuído</span>}
         </p>
       </div>
 
       <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-          Contato
-        </h3>
-        <p className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{conversation.contact.name}</p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">{conversation.contact.phoneNumber}</p>
+        <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/40">Contato</h3>
+        <div className="mt-2 flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mist font-display text-sm font-semibold text-ink">
+            {getInitials(conversation.contact.name)}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm text-ink">{conversation.contact.name}</p>
+            <p className="font-mono text-xs text-ink/40">{conversation.contact.phoneNumber}</p>
+          </div>
+        </div>
       </div>
     </aside>
   );

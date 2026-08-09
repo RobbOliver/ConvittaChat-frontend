@@ -1,39 +1,61 @@
 import { useState } from 'react';
 import type { Conversation } from '../../types';
+import { formatTime, getInitials } from '../../lib/format';
+import { StageBadge } from './StageBadge';
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+interface Props {
+  conversation: Conversation;
+  onBack?: () => void;
 }
 
-export function MessageThread({ conversation }: { conversation: Conversation }) {
+export function MessageThread({ conversation, onBack }: Props) {
   const [draft, setDraft] = useState('');
 
   return (
-    <section className="flex min-w-0 flex-1 flex-col">
-      <div className="border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {conversation.contact.name}
-        </h2>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">{conversation.contact.phoneNumber}</p>
+    <section className="flex h-full min-w-0 flex-1 flex-col bg-paper">
+      <div className="flex items-center gap-3 border-b border-line px-4 py-4 sm:px-5">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Voltar para a lista de conversas"
+            className="-ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/50 transition-colors hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 md:hidden"
+          >
+            <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M12.5 15 7.5 10l5-5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist font-display text-sm font-semibold text-ink">
+          {getInitials(conversation.contact.name)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="truncate font-display text-base font-semibold text-ink">{conversation.contact.name}</h2>
+            <StageBadge stage={conversation.stage} />
+          </div>
+          <p className="font-mono text-xs text-ink/40">{conversation.contact.phoneNumber}</p>
+        </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="flex-1 space-y-3 overflow-y-auto bg-mist/40 px-4 py-5 sm:px-5">
         {conversation.messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'}`}
-          >
+          <div key={message.id} className={`flex ${message.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${
-                message.direction === 'OUTBOUND'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
+              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
+                message.direction === 'OUTBOUND' ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
               }`}
             >
               <p>{message.content}</p>
               <p
-                className={`mt-1 text-[10px] ${
-                  message.direction === 'OUTBOUND' ? 'text-emerald-100' : 'text-neutral-500 dark:text-neutral-400'
+                className={`mt-1 font-mono text-[10px] ${
+                  message.direction === 'OUTBOUND' ? 'text-white/45' : 'text-ink/35'
                 }`}
               >
                 {formatTime(message.createdAt)}
@@ -44,7 +66,7 @@ export function MessageThread({ conversation }: { conversation: Conversation }) 
       </div>
 
       <form
-        className="flex gap-2 border-t border-neutral-200 p-3 dark:border-neutral-800"
+        className="flex gap-2 border-t border-line bg-paper p-3 sm:p-3.5"
         onSubmit={(event) => {
           event.preventDefault();
           setDraft('');
@@ -54,11 +76,11 @@ export function MessageThread({ conversation }: { conversation: Conversation }) 
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Digite uma mensagem"
-          className="flex-1 rounded-full border border-neutral-200 bg-transparent px-4 py-2 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700"
+          className="flex-1 rounded-full border border-line bg-mist/60 px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20"
         />
         <button
           type="submit"
-          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          className="rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50"
         >
           Enviar
         </button>

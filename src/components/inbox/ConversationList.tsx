@@ -1,5 +1,7 @@
 import type { Conversation } from '../../types';
+import { formatTime, getInitials } from '../../lib/format';
 import { StageBadge } from './StageBadge';
+import { STAGE_DOT } from './stageTheme';
 
 interface Props {
   conversations: Conversation[];
@@ -9,11 +11,14 @@ interface Props {
 
 export function ConversationList({ conversations, selectedId, onSelect }: Props) {
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-r border-neutral-200 dark:border-neutral-800">
-      <div className="border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
-        <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Conversas</h1>
+    <aside className="flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
+      <div className="px-5 pb-5 pt-6">
+        <p className="font-display text-xl font-semibold tracking-tight text-white">Convitta</p>
+        <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">
+          Caixa de vendas
+        </p>
       </div>
-      <ul className="flex-1 overflow-y-auto">
+      <ul className="flex-1 overflow-y-auto px-2 pb-4">
         {conversations.map((conversation) => {
           const lastMessage = conversation.messages.at(-1);
           const isSelected = conversation.id === selectedId;
@@ -22,23 +27,35 @@ export function ConversationList({ conversations, selectedId, onSelect }: Props)
               <button
                 type="button"
                 onClick={() => onSelect(conversation.id)}
-                className={`flex w-full flex-col gap-1 border-b border-neutral-100 px-4 py-3 text-left transition-colors dark:border-neutral-900 ${
-                  isSelected
-                    ? 'bg-neutral-100 dark:bg-neutral-800'
-                    : 'hover:bg-neutral-50 dark:hover:bg-neutral-900'
+                className={`group relative flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${
+                  isSelected ? 'bg-white/10' : 'hover:bg-white/5'
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {conversation.contact.name}
+                <span
+                  aria-hidden
+                  className={`absolute bottom-3 left-0 top-3 w-0.5 rounded-full transition-opacity ${STAGE_DOT[conversation.stage]} ${
+                    isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-60'
+                  }`}
+                />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 font-display text-sm font-semibold text-white">
+                  {getInitials(conversation.contact.name)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-medium text-white">{conversation.contact.name}</span>
+                    {lastMessage && (
+                      <span className="shrink-0 font-mono text-[10px] text-white/35">
+                        {formatTime(lastMessage.createdAt)}
+                      </span>
+                    )}
                   </span>
-                  <StageBadge stage={conversation.stage} />
-                </div>
-                {lastMessage && (
-                  <span className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                    {lastMessage.content}
+                  {lastMessage && (
+                    <span className="mt-0.5 block truncate text-xs text-white/50">{lastMessage.content}</span>
+                  )}
+                  <span className="mt-1.5 inline-flex">
+                    <StageBadge stage={conversation.stage} />
                   </span>
-                )}
+                </span>
               </button>
             </li>
           );
