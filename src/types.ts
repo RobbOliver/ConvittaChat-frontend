@@ -36,6 +36,7 @@ export interface ConversationSummary {
   session: ConversationSession;
   assigneeName: string | null;
   lastMessage: Message | null;
+  tabId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +48,15 @@ export interface ConversationDetail {
   session: ConversationSession;
   assigneeName: string | null;
   messages: Message[];
+  tabId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactTab {
+  id: string;
+  name: string;
+  order: number;
   createdAt: string;
   updatedAt: string;
 }

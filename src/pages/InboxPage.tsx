@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ConversationList } from '../components/inbox/ConversationList';
 import { MessageThread } from '../components/inbox/MessageThread';
-import { PipelinePanel } from '../components/inbox/PipelinePanel';
 import { useConversation } from '../hooks/useConversation';
 import { useConversations } from '../hooks/useConversations';
+import { useContactTabs, useCreateContactTab, useDeleteContactTab } from '../hooks/useContactTabs';
+import { useMoveConversation } from '../hooks/useMoveConversation';
+import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 
 export function InboxPage() {
   const { data: conversations, isLoading } = useConversations();
+  const { data: tabs } = useContactTabs();
+  const createTab = useCreateContactTab();
+  const deleteTab = useDeleteContactTab();
+  const moveConversation = useMoveConversation();
+  const syncingSessions = useSyncingSessions();
+
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [mobileView, setMobileView] = useState<'list' | 'thread'>('list');
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedId && conversations && conversations.length > 0) {
@@ -16,18 +25,40 @@ export function InboxPage() {
     }
   }, [conversations, selectedId]);
 
+  useEffect(() => {
+    if (activeTabId && tabs && !tabs.some((tab) => tab.id === activeTabId)) {
+      setActiveTabId(null);
+    }
+  }, [tabs, activeTabId]);
+
   const { data: selectedConversation } = useConversation(selectedId);
+
+  const visibleConversations = useMemo(
+    () => (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId),
+    [conversations, activeTabId],
+  );
 
   return (
     <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
-      <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 md:flex md:flex-none`}>
+      <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col md:flex md:flex-none`}>
+        {syncingSessions.size > 0 && (
+          <p className="bg-signal/15 px-4 py-2 text-center text-xs font-medium text-signal">
+            Sincronizando conversas…
+          </p>
+        )}
         <ConversationList
-          conversations={conversations ?? []}
+          conversations={visibleConversations}
+          tabs={tabs ?? []}
+          activeTabId={activeTabId}
           selectedId={selectedId}
           onSelect={(id) => {
             setSelectedId(id);
             setMobileView('thread');
           }}
+          onSelectTab={setActiveTabId}
+          onCreateTab={(name) => createTab.mutate(name)}
+          onDeleteTab={(id) => deleteTab.mutate(id)}
+          onMoveConversation={(conversationId, tabId) => moveConversation.mutate({ conversationId, tabId })}
         />
       </div>
       <div className={`${mobileView === 'thread' ? 'flex' : 'hidden'} min-h-0 min-w-0 flex-1 md:flex`}>
@@ -40,9 +71,6 @@ export function InboxPage() {
               : 'Nenhuma conversa ainda. Assim que alguém escrever pro seu WhatsApp, ela aparece aqui.'}
           </div>
         )}
-      </div>
-      <div className="hidden min-h-0 lg:flex">
-        {selectedConversation && <PipelinePanel conversation={selectedConversation} />}
       </div>
     </div>
   );

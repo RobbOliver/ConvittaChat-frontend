@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { socket } from '../lib/socket';
 import type { WhatsappSession } from '../types';
@@ -47,4 +47,26 @@ export function useReconnectWhatsappSession() {
     mutationFn: async (id: string) => (await api.post(`/whatsapp-sessions/${id}/reconnect`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY }),
   });
+}
+
+/** Session ids currently streaming in their WhatsApp history after a fresh pairing. */
+export function useSyncingSessions(): Set<string> {
+  const [syncing, setSyncing] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const onSync = (payload: { sessionId: string; syncing: boolean }) => {
+      setSyncing((prev) => {
+        const next = new Set(prev);
+        if (payload.syncing) next.add(payload.sessionId);
+        else next.delete(payload.sessionId);
+        return next;
+      });
+    };
+    socket.on('whatsapp-session:sync', onSync);
+    return () => {
+      socket.off('whatsapp-session:sync', onSync);
+    };
+  }, []);
+
+  return syncing;
 }

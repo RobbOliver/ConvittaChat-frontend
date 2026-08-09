@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useSendMessage } from '../../hooks/useSendMessage';
-import { contactDisplayName, formatTime, getInitials } from '../../lib/format';
+import { contactDisplayName, formatTime } from '../../lib/format';
 import type { ConversationDetail } from '../../types';
-import { StageBadge } from './StageBadge';
+import { Avatar } from './Avatar';
 
 interface Props {
   conversation: ConversationDetail;
@@ -44,14 +44,9 @@ export function MessageThread({ conversation, onBack }: Props) {
             </svg>
           </button>
         )}
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist font-display text-sm font-semibold text-ink">
-          {getInitials(name)}
-        </span>
+        <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
-            <StageBadge stage={conversation.stage} />
-          </div>
+          <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
           <p className="font-mono text-xs text-ink/40">
             {conversation.contact.phoneNumber} · via {conversation.session.label}
           </p>

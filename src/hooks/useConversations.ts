@@ -17,8 +17,12 @@ export function useConversations() {
   useEffect(() => {
     const invalidate = () => queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     socket.on('conversation:new-message', invalidate);
+    socket.on('conversation:updated', invalidate);
+    socket.on('conversations:synced', invalidate);
     return () => {
       socket.off('conversation:new-message', invalidate);
+      socket.off('conversation:updated', invalidate);
+      socket.off('conversations:synced', invalidate);
     };
   }, [queryClient]);
 
