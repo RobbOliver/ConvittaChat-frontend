@@ -1,15 +1,27 @@
-import { useState } from 'react';
-import type { Conversation } from '../../types';
-import { formatTime, getInitials } from '../../lib/format';
+import { useState, type FormEvent } from 'react';
+import { useSendMessage } from '../../hooks/useSendMessage';
+import { contactDisplayName, formatTime, getInitials } from '../../lib/format';
+import type { ConversationDetail } from '../../types';
 import { StageBadge } from './StageBadge';
 
 interface Props {
-  conversation: Conversation;
+  conversation: ConversationDetail;
   onBack?: () => void;
 }
 
 export function MessageThread({ conversation, onBack }: Props) {
   const [draft, setDraft] = useState('');
+  const sendMessage = useSendMessage(conversation.id);
+  const name = contactDisplayName(conversation.contact);
+  const canSend = conversation.session.status === 'CONNECTED';
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const content = draft.trim();
+    if (!content) return;
+    setDraft('');
+    sendMessage.mutate(content);
+  }
 
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col bg-paper">
@@ -33,14 +45,16 @@ export function MessageThread({ conversation, onBack }: Props) {
           </button>
         )}
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist font-display text-sm font-semibold text-ink">
-          {getInitials(conversation.contact.name)}
+          {getInitials(name)}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="truncate font-display text-base font-semibold text-ink">{conversation.contact.name}</h2>
+            <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
             <StageBadge stage={conversation.stage} />
           </div>
-          <p className="font-mono text-xs text-ink/40">{conversation.contact.phoneNumber}</p>
+          <p className="font-mono text-xs text-ink/40">
+            {conversation.contact.phoneNumber} · via {conversation.session.label}
+          </p>
         </div>
       </div>
 
@@ -65,25 +79,28 @@ export function MessageThread({ conversation, onBack }: Props) {
         ))}
       </div>
 
-      <form
-        className="flex gap-2 border-t border-line bg-paper p-3 sm:p-3.5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setDraft('');
-        }}
-      >
-        <input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="Digite uma mensagem"
-          className="flex-1 rounded-full border border-line bg-mist/60 px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20"
-        />
-        <button
-          type="submit"
-          className="rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50"
-        >
-          Enviar
-        </button>
+      <form className="border-t border-line bg-paper p-3 sm:p-3.5" onSubmit={handleSubmit}>
+        {!canSend && (
+          <p className="mb-2 text-center text-xs text-stage-lost">
+            {conversation.session.label} está desconectado — reconecte na Home para responder.
+          </p>
+        )}
+        <div className="flex gap-2">
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Digite uma mensagem"
+            disabled={!canSend}
+            className="flex-1 rounded-full border border-line bg-mist/60 px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20 disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={!canSend || sendMessage.isPending}
+            className="rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 disabled:opacity-50"
+          >
+            {sendMessage.isPending ? 'Enviando…' : 'Enviar'}
+          </button>
+        </div>
       </form>
     </section>
   );

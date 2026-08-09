@@ -1,8 +1,10 @@
-import type { Conversation } from '../../types';
-import { getInitials } from '../../lib/format';
+import { contactDisplayName, getInitials } from '../../lib/format';
+import type { ConversationDetail } from '../../types';
 import { StageFunnel } from './StageFunnel';
 
-export function PipelinePanel({ conversation }: { conversation: Conversation }) {
+export function PipelinePanel({ conversation }: { conversation: ConversationDetail }) {
+  const name = contactDisplayName(conversation.contact);
+
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col gap-6 overflow-y-auto border-l border-line bg-paper px-5 py-6">
       <div>
@@ -29,13 +31,19 @@ export function PipelinePanel({ conversation }: { conversation: Conversation }) 
         <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/40">Contato</h3>
         <div className="mt-2 flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mist font-display text-sm font-semibold text-ink">
-            {getInitials(conversation.contact.name)}
+            {getInitials(name)}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm text-ink">{conversation.contact.name}</p>
+            <p className="truncate text-sm text-ink">{name}</p>
             <p className="font-mono text-xs text-ink/40">{conversation.contact.phoneNumber}</p>
           </div>
         </div>
+      </div>
+
+      <div>
+        <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/40">Número</h3>
+        <p className="mt-2 text-sm text-ink">{conversation.session.label}</p>
+        <p className="font-mono text-xs text-ink/40">{conversation.session.phoneNumber ?? '—'}</p>
       </div>
     </aside>
   );

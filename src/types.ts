@@ -2,24 +2,62 @@ export type ConversationStage = 'NEW' | 'IN_PROGRESS' | 'WON' | 'LOST';
 
 export type MessageDirection = 'INBOUND' | 'OUTBOUND';
 
+export type MessageStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
+
+export type WhatsappSessionStatus = 'PENDING_QR' | 'CONNECTED' | 'DISCONNECTED';
+
 export interface Contact {
   id: string;
-  name: string;
+  whatsappJid: string;
+  name: string | null;
   phoneNumber: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
 
 export interface Message {
   id: string;
   direction: MessageDirection;
-  content: string;
+  status: MessageStatus;
+  content: string | null;
   createdAt: string;
 }
 
-export interface Conversation {
+export interface ConversationSession {
+  id: string;
+  label: string;
+  phoneNumber: string | null;
+  status: WhatsappSessionStatus;
+}
+
+export interface ConversationSummary {
   id: string;
   stage: ConversationStage;
   contact: Contact;
+  session: ConversationSession;
+  assigneeName: string | null;
+  lastMessage: Message | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationDetail {
+  id: string;
+  stage: ConversationStage;
+  contact: Contact;
+  session: ConversationSession;
   assigneeName: string | null;
   messages: Message[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WhatsappSession {
+  id: string;
+  label: string;
+  phoneNumber: string | null;
+  status: WhatsappSessionStatus;
+  connectedAt: string | null;
+  removedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
