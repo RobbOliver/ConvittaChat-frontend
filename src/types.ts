@@ -12,6 +12,7 @@ export interface Contact {
   name: string | null;
   phoneNumber: string;
   avatarUrl?: string | null;
+  isGroup: boolean;
 }
 
 export interface Message {
