@@ -8,6 +8,18 @@ export type WhatsappSessionStatus = 'PENDING_QR' | 'CONNECTED' | 'DISCONNECTED';
 
 export type MessageMediaType = 'IMAGE' | 'STICKER' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'GIF';
 
+/** Which Inbox layout/behavior the user sees — SECTOR (by department) is the default; SALES is
+ * the sales-pipeline-oriented variant. Both render identically today; this is the seam future
+ * per-mode Inbox components will branch on. */
+export type InboxType = 'SECTOR' | 'SALES';
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  inboxType: InboxType;
+}
+
 export interface Contact {
   id: string;
   whatsappJid: string;

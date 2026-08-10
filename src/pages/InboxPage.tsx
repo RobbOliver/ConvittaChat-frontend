@@ -4,6 +4,7 @@ import { MessageThread } from '../components/inbox/MessageThread';
 import { useConversation } from '../hooks/useConversation';
 import { useConversations } from '../hooks/useConversations';
 import { useContactTabs, useCreateContactTab, useDeleteContactTab } from '../hooks/useContactTabs';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useMoveConversation } from '../hooks/useMoveConversation';
 import { useSearchConversations } from '../hooks/useSearchConversations';
@@ -11,6 +12,7 @@ import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 
 export function InboxPage() {
   const { data: conversations, isLoading } = useConversations();
+  const { data: currentUser } = useCurrentUser();
   const { data: tabs } = useContactTabs();
   const createTab = useCreateContactTab();
   const deleteTab = useDeleteContactTab();
@@ -52,6 +54,7 @@ export function InboxPage() {
           </p>
         )}
         <ConversationList
+          inboxType={currentUser?.inboxType ?? 'SECTOR'}
           conversations={visibleConversations}
           searchResults={searchResults}
           isSearching={searchQuery.length > 0 && isSearching}

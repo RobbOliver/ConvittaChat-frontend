@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom';
 import { PRESS_SM } from '../../lib/interactions';
-import type { ContactTab, ConversationSummary, InboxSearchResults } from '../../types';
+import type { ContactTab, ConversationSummary, InboxSearchResults, InboxType } from '../../types';
 import { ConversationRow } from './ConversationRow';
 import { NewChatButton } from './NewChatButton';
 import { SearchResults } from './SearchResults';
 import { TabBar } from './TabBar';
 
+const INBOX_TYPE_LABEL: Record<InboxType, string> = {
+  SECTOR: 'Inbox por Setor',
+  SALES: 'Inbox para Vendas',
+};
+
 interface Props {
+  inboxType: InboxType;
   conversations: ConversationSummary[];
   searchResults: InboxSearchResults | undefined;
   isSearching: boolean;
@@ -23,6 +29,7 @@ interface Props {
 }
 
 export function ConversationList({
+  inboxType,
   conversations,
   searchResults,
   isSearching,
@@ -55,7 +62,9 @@ export function ConversationList({
         </svg>
         <span>
           <p className="font-display text-xl font-semibold tracking-tight text-white">Convitta</p>
-          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">Inbox</p>
+          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">
+            {INBOX_TYPE_LABEL[inboxType]}
+          </p>
         </span>
       </Link>
 
