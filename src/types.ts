@@ -64,6 +64,9 @@ export interface ConversationSummary {
   assigneeName: string | null;
   lastMessage: Message | null;
   tabId: string | null;
+  /** Inbound messages received since this conversation was last opened. Reset to 0 by fetching
+   * its detail (GET /conversations/:id) — see useConversation. */
+  unreadCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +79,18 @@ export interface ConversationDetail {
   assigneeName: string | null;
   messages: Message[];
   tabId: string | null;
+  unreadCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Free-form key/value info attached to a contact (Sales Inbox only) — e.g. key "endereço",
+ * value the actual address. A future quick-message template feature will substitute {key}
+ * placeholders in outgoing messages with a contact's matching field value. */
+export interface ContactField {
+  id: string;
+  key: string;
+  value: string;
   createdAt: string;
   updatedAt: string;
 }

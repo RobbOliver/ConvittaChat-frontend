@@ -6,6 +6,8 @@ import type { ContactTab } from '../../types';
 interface Props {
   tabs: ContactTab[];
   activeTabId: string | null;
+  unreadTotal: number;
+  unreadByTab: Record<string, number>;
   onSelect: (tabId: string | null) => void;
   onCreateTab: (name: string) => void;
   onDeleteTab: (id: string) => void;
@@ -18,7 +20,27 @@ function chipClasses(isActive: boolean, isDragOver: boolean) {
   return 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white';
 }
 
-export function TabBar({ tabs, activeTabId, onSelect, onCreateTab, onDeleteTab, onDropConversation }: Props) {
+/** Small discreet unread-count pill — a white dot with the number, legible on both the plain
+ * dark chip and the amber "active" chip without competing with either for attention. */
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-semibold leading-none text-ink">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
+
+export function TabBar({
+  tabs,
+  activeTabId,
+  unreadTotal,
+  unreadByTab,
+  onSelect,
+  onCreateTab,
+  onDeleteTab,
+  onDropConversation,
+}: Props) {
   const [dragOverTabId, setDragOverTabId] = useState<string | null | undefined>(undefined);
   const [creating, setCreating] = useState(false);
   const [draftName, setDraftName] = useState('');
@@ -52,9 +74,10 @@ export function TabBar({ tabs, activeTabId, onSelect, onCreateTab, onDeleteTab, 
         onDragOver={(event) => handleDragOver(event, null)}
         onDragLeave={() => setDragOverTabId(undefined)}
         onDrop={(event) => handleDrop(event, null)}
-        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === null, dragOverTabId === null)}`}
+        className={`flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === null, dragOverTabId === null)}`}
       >
         All
+        <UnreadBadge count={unreadTotal} />
       </button>
 
       {tabs.map((tab) => (
@@ -65,9 +88,10 @@ export function TabBar({ tabs, activeTabId, onSelect, onCreateTab, onDeleteTab, 
             onDragOver={(event) => handleDragOver(event, tab.id)}
             onDragLeave={() => setDragOverTabId(undefined)}
             onDrop={(event) => handleDrop(event, tab.id)}
-            className={`rounded-full py-1.5 pl-3 pr-6 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === tab.id, dragOverTabId === tab.id)}`}
+            className={`flex items-center rounded-full py-1.5 pl-3 pr-6 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === tab.id, dragOverTabId === tab.id)}`}
           >
             {tab.name}
+            <UnreadBadge count={unreadByTab[tab.id] ?? 0} />
           </button>
           <button
             type="button"

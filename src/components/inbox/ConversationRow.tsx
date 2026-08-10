@@ -43,18 +43,23 @@ export function ConversationRow({
         }`}
       >
         <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} tone="dark" />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center justify-between gap-2 pr-6">
-            <span className="truncate text-sm font-medium text-white">{name}</span>
+        <span className="flex min-w-0 flex-1 items-start justify-between gap-2 pr-6">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-white">{name}</span>
             {lastMessage && (
-              <span className="shrink-0 font-mono text-[10px] text-white/35">
-                {formatTime(lastMessage.createdAt)}
+              <span className="mt-0.5 block truncate text-xs text-white/50">{lastMessage.content}</span>
+            )}
+          </span>
+          <span className="flex shrink-0 flex-col items-end gap-1">
+            {lastMessage && (
+              <span className="font-mono text-[10px] text-white/35">{formatTime(lastMessage.createdAt)}</span>
+            )}
+            {conversation.unreadCount > 0 && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-signal px-1 text-[10px] font-semibold leading-none text-ink">
+                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
               </span>
             )}
           </span>
-          {lastMessage && (
-            <span className="mt-0.5 block truncate pr-6 text-xs text-white/50">{lastMessage.content}</span>
-          )}
         </span>
       </button>
       <div className="absolute right-2 top-3">

@@ -3,7 +3,7 @@ import { useSendMedia } from '../../hooks/useSendMedia';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import { contactDisplayName, formatTime, senderColor } from '../../lib/format';
 import { PRESS, PRESS_SM } from '../../lib/interactions';
-import type { ConversationDetail, Message } from '../../types';
+import type { ConversationDetail, InboxType, Message } from '../../types';
 import { AttachMenu } from './AttachMenu';
 import { Avatar } from './Avatar';
 import { MediaAttachment } from './MediaAttachment';
@@ -31,10 +31,12 @@ function GroupSenderTag({ sender, compact }: { sender: NonNullable<Message['send
 
 interface Props {
   conversation: ConversationDetail;
+  inboxType: InboxType;
   onBack?: () => void;
+  onOpenDetails?: () => void;
 }
 
-export function MessageThread({ conversation, onBack }: Props) {
+export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }: Props) {
   const [draft, setDraft] = useState('');
   const [lightboxTarget, setLightboxTarget] = useState<LightboxTarget | null>(null);
   const sendMessage = useSendMessage(conversation.id);
@@ -86,13 +88,31 @@ export function MessageThread({ conversation, onBack }: Props) {
             </svg>
           </button>
         )}
-        <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
-          <p className="font-mono text-xs text-ink/40">
-            {conversation.contact.phoneNumber} · via {conversation.session.label}
-          </p>
-        </div>
+        {inboxType === 'SALES' && onOpenDetails ? (
+          <button
+            type="button"
+            onClick={onOpenDetails}
+            className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left hover:bg-mist/60 ${PRESS}`}
+          >
+            <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
+              <p className="font-mono text-xs text-ink/40">
+                {conversation.contact.phoneNumber} · via {conversation.session.label}
+              </p>
+            </div>
+          </button>
+        ) : (
+          <>
+            <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
+              <p className="font-mono text-xs text-ink/40">
+                {conversation.contact.phoneNumber} · via {conversation.session.label}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-mist/40 px-4 py-5 sm:px-5">

@@ -18,6 +18,8 @@ interface Props {
   isSearching: boolean;
   tabs: ContactTab[];
   activeTabId: string | null;
+  unreadTotal: number;
+  unreadByTab: Record<string, number>;
   selectedId: string | undefined;
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -35,6 +37,8 @@ export function ConversationList({
   isSearching,
   tabs,
   activeTabId,
+  unreadTotal,
+  unreadByTab,
   selectedId,
   searchValue,
   onSearchChange,
@@ -95,6 +99,8 @@ export function ConversationList({
       <TabBar
         tabs={tabs}
         activeTabId={activeTabId}
+        unreadTotal={unreadTotal}
+        unreadByTab={unreadByTab}
         onSelect={onSelectTab}
         onCreateTab={onCreateTab}
         onDeleteTab={onDeleteTab}

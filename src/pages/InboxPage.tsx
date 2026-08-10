@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ConversationList } from '../components/inbox/ConversationList';
+import { ContactDetailsPanel } from '../components/inbox/ContactDetailsPanel';
 import { MessageThread } from '../components/inbox/MessageThread';
 import { useConversation } from '../hooks/useConversation';
 import { useConversations } from '../hooks/useConversations';
@@ -13,6 +14,7 @@ import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 export function InboxPage() {
   const { data: conversations, isLoading } = useConversations();
   const { data: currentUser } = useCurrentUser();
+  const inboxType = currentUser?.inboxType ?? 'SECTOR';
   const { data: tabs } = useContactTabs();
   const createTab = useCreateContactTab();
   const deleteTab = useDeleteContactTab();
@@ -20,7 +22,8 @@ export function InboxPage() {
   const syncingSessions = useSyncingSessions();
 
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const [mobileView, setMobileView] = useState<'list' | 'thread'>('list');
+  const [mobileView, setMobileView] = useState<'list' | 'thread' | 'details'>('list');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const searchQuery = useDebouncedValue(searchInput.trim(), 300);
@@ -38,12 +41,40 @@ export function InboxPage() {
     }
   }, [tabs, activeTabId]);
 
+  // Reopening a different chat should mean re-deciding whether to look at its contact info, not
+  // silently keep showing the previous contact's panel.
+  useEffect(() => {
+    setDetailsOpen(false);
+  }, [selectedId]);
+
   const { data: selectedConversation } = useConversation(selectedId);
 
   const visibleConversations = useMemo(
     () => (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId),
     [conversations, activeTabId],
   );
+
+  const unread = useMemo(() => {
+    const byTab: Record<string, number> = {};
+    let total = 0;
+    for (const conversation of conversations ?? []) {
+      total += conversation.unreadCount;
+      if (conversation.tabId) {
+        byTab[conversation.tabId] = (byTab[conversation.tabId] ?? 0) + conversation.unreadCount;
+      }
+    }
+    return { total, byTab };
+  }, [conversations]);
+
+  function openDetails() {
+    setDetailsOpen(true);
+    setMobileView('details');
+  }
+
+  function closeDetails() {
+    setDetailsOpen(false);
+    setMobileView('thread');
+  }
 
   return (
     <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
@@ -54,12 +85,14 @@ export function InboxPage() {
           </p>
         )}
         <ConversationList
-          inboxType={currentUser?.inboxType ?? 'SECTOR'}
+          inboxType={inboxType}
           conversations={visibleConversations}
           searchResults={searchResults}
           isSearching={searchQuery.length > 0 && isSearching}
           tabs={tabs ?? []}
           activeTabId={activeTabId}
+          unreadTotal={unread.total}
+          unreadByTab={unread.byTab}
           selectedId={selectedId}
           searchValue={searchInput}
           onSearchChange={setSearchInput}
@@ -78,7 +111,12 @@ export function InboxPage() {
       </div>
       <div className={`${mobileView === 'thread' ? 'flex' : 'hidden'} min-h-0 min-w-0 flex-1 md:flex`}>
         {selectedConversation ? (
-          <MessageThread conversation={selectedConversation} onBack={() => setMobileView('list')} />
+          <MessageThread
+            conversation={selectedConversation}
+            inboxType={inboxType}
+            onBack={() => setMobileView('list')}
+            onOpenDetails={inboxType === 'SALES' ? openDetails : undefined}
+          />
         ) : (
           <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-ink/40">
             {isLoading
@@ -87,6 +125,11 @@ export function InboxPage() {
           </div>
         )}
       </div>
+      {inboxType === 'SALES' && detailsOpen && selectedConversation && (
+        <div className={`${mobileView === 'details' ? 'flex' : 'hidden'} min-h-0 md:flex`}>
+          <ContactDetailsPanel contact={selectedConversation.contact} onClose={closeDetails} />
+        </div>
+      )}
     </div>
   );
 }
