@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { contactDisplayName, formatSearchDate } from '../../lib/format';
+import { PRESS } from '../../lib/interactions';
 import type { ContactTab, InboxSearchResults } from '../../types';
 import { Avatar } from './Avatar';
 import { ConversationRow } from './ConversationRow';
@@ -73,7 +74,7 @@ export function SearchResults({ results, isLoading, query, tabs, selectedId, onS
                   <button
                     type="button"
                     onClick={() => onSelect(message.conversationId)}
-                    className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
+                    className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS}`}
                   >
                     <Avatar name={name} avatarUrl={message.contact.avatarUrl} tone="dark" />
                     <span className="min-w-0 flex-1">

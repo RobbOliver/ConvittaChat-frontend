@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSendMedia } from '../../hooks/useSendMedia';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import { contactDisplayName, formatTime, senderColor } from '../../lib/format';
+import { PRESS, PRESS_SM } from '../../lib/interactions';
 import type { ConversationDetail, Message } from '../../types';
 import { AttachMenu } from './AttachMenu';
 import { Avatar } from './Avatar';
@@ -41,6 +42,17 @@ export function MessageThread({ conversation, onBack }: Props) {
   const name = contactDisplayName(conversation.contact);
   const canSend = conversation.session.status === 'CONNECTED';
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const previousConversationId = useRef(conversation.id);
+
+  // Jump to the bottom instantly when switching chats, but scroll smoothly for messages that
+  // arrive (or are sent) within the same chat — otherwise replies keep landing off-screen.
+  useEffect(() => {
+    const isNewConversation = previousConversationId.current !== conversation.id;
+    previousConversationId.current = conversation.id;
+    bottomRef.current?.scrollIntoView({ behavior: isNewConversation ? 'auto' : 'smooth' });
+  }, [conversation.id, conversation.messages.length]);
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const content = draft.trim();
@@ -61,7 +73,7 @@ export function MessageThread({ conversation, onBack }: Props) {
             type="button"
             onClick={onBack}
             aria-label="Voltar para a lista de conversas"
-            className="-ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/50 transition-colors hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 md:hidden"
+            className={`-ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 md:hidden ${PRESS_SM}`}
           >
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
               <path
@@ -129,6 +141,7 @@ export function MessageThread({ conversation, onBack }: Props) {
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
 
       <form className="border-t border-line bg-paper p-3 sm:p-3.5" onSubmit={handleSubmit}>
@@ -150,7 +163,7 @@ export function MessageThread({ conversation, onBack }: Props) {
           <button
             type="submit"
             disabled={!canSend || sendMessage.isPending}
-            className="rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 disabled:opacity-50"
+            className={`rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 disabled:opacity-50 ${PRESS}`}
           >
             {sendMessage.isPending ? 'Enviando…' : 'Enviar'}
           </button>

@@ -1,4 +1,5 @@
 import { useMessageMedia } from '../../hooks/useMessageMedia';
+import { PRESS } from '../../lib/interactions';
 import type { Message } from '../../types';
 import type { LightboxTarget } from './MediaLightbox';
 
@@ -34,7 +35,7 @@ export function MediaAttachment({ message, tone, onOpen }: Props) {
         <button
           type="button"
           onClick={() => onOpen?.({ type: 'image', url, mimeType: message.mediaMimeType })}
-          className="block cursor-zoom-in"
+          className={`block cursor-zoom-in ${PRESS}`}
         >
           <img src={url} alt="" className="max-h-72 w-full max-w-xs rounded-lg object-cover" />
         </button>
@@ -60,7 +61,7 @@ export function MediaAttachment({ message, tone, onOpen }: Props) {
         <button
           type="button"
           onClick={() => onOpen?.({ type: 'video', url, mimeType: message.mediaMimeType })}
-          className="group relative block max-h-72 w-full max-w-xs cursor-pointer overflow-hidden rounded-lg"
+          className={`group relative block max-h-72 w-full max-w-xs cursor-pointer overflow-hidden rounded-lg ${PRESS}`}
         >
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video src={url} muted playsInline className="max-h-72 w-full object-cover" />
@@ -85,7 +86,7 @@ export function MediaAttachment({ message, tone, onOpen }: Props) {
               fileName: message.mediaFileName,
             })
           }
-          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm ${PRESS} ${
             tone === 'outbound' ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-mist text-ink hover:bg-mist/70'
           }`}
         >

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PRESS, PRESS_SM } from '../../lib/interactions';
 
 interface Props {
   onSelectFile: (file: File) => void;
@@ -54,7 +55,7 @@ export function AttachMenu({ onSelectFile, disabled }: Props) {
         disabled={disabled}
         aria-label="Anexar arquivo"
         title="Anexar arquivo"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 transition-colors hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
       >
         <ClipIcon />
       </button>
@@ -65,7 +66,7 @@ export function AttachMenu({ onSelectFile, disabled }: Props) {
               key={category.label}
               type="button"
               onClick={() => pickFile(category.accept)}
-              className="block w-full px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-mist"
+              className={`block w-full px-3 py-2 text-left text-sm text-ink hover:bg-mist ${PRESS}`}
             >
               {category.label}
             </button>

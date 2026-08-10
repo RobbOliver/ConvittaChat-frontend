@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api } from '../../lib/api';
+import { PRESS } from '../../lib/interactions';
 import { socket } from '../../lib/socket';
 import type { WhatsappSessionStatus } from '../../types';
 import { useCreateWhatsappSession, useReconnectWhatsappSession } from '../../hooks/useWhatsappSessions';
@@ -106,14 +107,14 @@ export function WhatsappConnectModal({ open, onClose, watchSessionId }: Props) {
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-mist"
+                className={`rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-mist ${PRESS}`}
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={createSession.isPending}
-                className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 disabled:opacity-60"
+                className={`rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink hover:bg-signal/90 disabled:opacity-60 ${PRESS}`}
               >
                 {createSession.isPending ? 'Criando…' : 'Continuar'}
               </button>
@@ -136,7 +137,7 @@ export function WhatsappConnectModal({ open, onClose, watchSessionId }: Props) {
                 <p className="text-sm text-ink/40">Gerando QR…</p>
               )}
             </div>
-            <button type="button" onClick={onClose} className="text-sm text-ink/50 hover:text-ink">
+            <button type="button" onClick={onClose} className={`text-sm text-ink/50 hover:text-ink ${PRESS}`}>
               Fechar
             </button>
           </div>

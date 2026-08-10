@@ -17,6 +17,12 @@ export interface Contact {
   isGroup: boolean;
 }
 
+/** A synced WhatsApp contact/group, whether or not a conversation with them has started yet. */
+export interface ContactWithConversation extends Contact {
+  conversationId: string | null;
+  session: { id: string; label: string; status: WhatsappSessionStatus };
+}
+
 export interface Message {
   id: string;
   direction: MessageDirection;

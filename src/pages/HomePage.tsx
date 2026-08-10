@@ -4,6 +4,7 @@ import { SessionStatusBadge } from '../components/whatsapp/SessionStatusBadge';
 import { WhatsappConnectModal } from '../components/whatsapp/WhatsappConnectModal';
 import { useDisconnectWhatsappSession, useWhatsappSessions } from '../hooks/useWhatsappSessions';
 import { clearToken } from '../lib/authToken';
+import { PRESS } from '../lib/interactions';
 import { disconnectSocket } from '../lib/socket';
 
 const MAX_SESSIONS = 5;
@@ -56,7 +57,7 @@ export function HomePage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+            className={`w-full rounded-lg px-3 py-2 text-left text-sm text-white/60 hover:bg-white/5 hover:text-white ${PRESS}`}
           >
             Sair
           </button>
@@ -102,7 +103,7 @@ export function HomePage() {
                     <button
                       type="button"
                       onClick={() => disconnectSession.mutate(session.id)}
-                      className="text-xs font-medium text-ink/50 hover:text-stage-lost"
+                      className={`text-xs font-medium text-ink/50 hover:text-stage-lost ${PRESS}`}
                     >
                       Desconectar
                     </button>
@@ -112,14 +113,14 @@ export function HomePage() {
                         type="button"
                         onClick={() => openReconnectModal(session.id)}
                         disabled={!!session.removedAt && atLimit}
-                        className="text-xs font-medium text-signal hover:text-signal/80 disabled:opacity-40"
+                        className={`text-xs font-medium text-signal hover:text-signal/80 disabled:opacity-40 ${PRESS}`}
                       >
                         Reconectar
                       </button>
                       <button
                         type="button"
                         onClick={() => disconnectSession.mutate(session.id)}
-                        className="text-xs font-medium text-ink/50 hover:text-stage-lost"
+                        className={`text-xs font-medium text-ink/50 hover:text-stage-lost ${PRESS}`}
                       >
                         Remover
                       </button>
@@ -134,7 +135,7 @@ export function HomePage() {
             type="button"
             onClick={openConnectModal}
             disabled={atLimit}
-            className="mt-6 rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 disabled:cursor-not-allowed disabled:opacity-40"
+            className={`mt-6 rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink hover:bg-signal/90 disabled:cursor-not-allowed disabled:opacity-40 ${PRESS}`}
           >
             + Conectar WhatsApp
           </button>

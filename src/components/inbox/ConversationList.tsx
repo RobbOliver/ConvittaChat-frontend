@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PRESS_SM } from '../../lib/interactions';
 import type { ContactTab, ConversationSummary, InboxSearchResults } from '../../types';
 import { ConversationRow } from './ConversationRow';
 import { NewChatButton } from './NewChatButton';
@@ -74,7 +75,7 @@ export function ConversationList({
               type="button"
               onClick={() => onSearchChange('')}
               aria-label="Limpar busca"
-              className="absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
+              className={`absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-white/35 hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
             >
               <ClearIcon />
             </button>

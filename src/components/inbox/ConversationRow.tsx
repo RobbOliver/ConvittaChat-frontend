@@ -1,6 +1,7 @@
 import type { DragEvent } from 'react';
 import { CONVERSATION_DRAG_MIME } from '../../lib/dnd';
 import { contactDisplayName, formatTime } from '../../lib/format';
+import { PRESS } from '../../lib/interactions';
 import type { ContactTab, ConversationSummary } from '../../types';
 import { Avatar } from './Avatar';
 import { MoveToTabMenu } from './MoveToTabMenu';
@@ -37,7 +38,7 @@ export function ConversationRow({
         draggable={draggable}
         onDragStart={draggable ? handleDragStart : undefined}
         onClick={() => onSelect(conversation.id)}
-        className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${
+        className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS} ${
           isSelected ? 'bg-white/10' : 'hover:bg-white/5'
         }`}
       >

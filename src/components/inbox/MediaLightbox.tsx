@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { PRESS, PRESS_SM } from '../../lib/interactions';
 
 export interface LightboxTarget {
   type: 'image' | 'video' | 'document';
@@ -37,7 +38,7 @@ export function MediaLightbox({ target, onClose }: { target: LightboxTarget; onC
           onClick={(event) => event.stopPropagation()}
           aria-label="Baixar"
           title="Baixar"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white ${PRESS_SM}`}
         >
           <DownloadIcon />
         </a>
@@ -46,7 +47,7 @@ export function MediaLightbox({ target, onClose }: { target: LightboxTarget; onC
           onClick={onClose}
           aria-label="Fechar"
           title="Fechar"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white ${PRESS_SM}`}
         >
           <CloseIcon />
         </button>
@@ -104,7 +105,7 @@ function UnsupportedPreview({ message, target }: { message: string; target: Ligh
       <a
         href={target.url}
         download={target.fileName ?? undefined}
-        className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-signal/90"
+        className={`rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink hover:bg-signal/90 ${PRESS}`}
       >
         Baixar arquivo
       </a>

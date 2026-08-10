@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PRESS, PRESS_SM } from '../../lib/interactions';
 import type { ContactTab } from '../../types';
 
 interface Props {
@@ -32,7 +33,7 @@ export function MoveToTabMenu({ tabs, currentTabId, onMove }: Props) {
         onClick={() => setOpen((value) => !value)}
         aria-label="Mover para outra aba"
         aria-expanded={open}
-        className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 opacity-0 transition-opacity hover:bg-white/10 hover:text-white focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100"
+        className={`flex h-7 w-7 items-center justify-center rounded-full text-white/40 opacity-0 hover:bg-white/10 hover:text-white focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 ${PRESS_SM}`}
       >
         <svg viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
           <circle cx="8" cy="3" r="1.3" />
@@ -47,7 +48,7 @@ export function MoveToTabMenu({ tabs, currentTabId, onMove }: Props) {
           <button
             type="button"
             onClick={() => select(null)}
-            className={`block w-full px-3 py-1.5 text-left text-sm ${
+            className={`block w-full px-3 py-1.5 text-left text-sm ${PRESS} ${
               currentTabId === null ? 'font-semibold text-signal' : 'text-ink hover:bg-mist'
             }`}
           >
@@ -58,7 +59,7 @@ export function MoveToTabMenu({ tabs, currentTabId, onMove }: Props) {
               key={tab.id}
               type="button"
               onClick={() => select(tab.id)}
-              className={`block w-full truncate px-3 py-1.5 text-left text-sm ${
+              className={`block w-full truncate px-3 py-1.5 text-left text-sm ${PRESS} ${
                 currentTabId === tab.id ? 'font-semibold text-signal' : 'text-ink hover:bg-mist'
               }`}
             >

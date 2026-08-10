@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { setToken } from '../lib/authToken';
+import { PRESS } from '../lib/interactions';
 import { connectSocket } from '../lib/socket';
 
 type Mode = 'login' | 'register';
@@ -48,7 +49,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setMode('login')}
-              className={`flex-1 rounded-full py-1.5 transition-colors ${
+              className={`flex-1 rounded-full py-1.5 ${PRESS} ${
                 mode === 'login' ? 'bg-ink text-white' : 'text-ink/50 hover:text-ink'
               }`}
             >
@@ -57,7 +58,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setMode('register')}
-              className={`flex-1 rounded-full py-1.5 transition-colors ${
+              className={`flex-1 rounded-full py-1.5 ${PRESS} ${
                 mode === 'register' ? 'bg-ink text-white' : 'text-ink/50 hover:text-ink'
               }`}
             >
@@ -113,7 +114,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-signal py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 disabled:opacity-60"
+              className={`w-full rounded-full bg-signal py-2.5 text-sm font-semibold text-ink hover:bg-signal/90 disabled:opacity-60 ${PRESS}`}
             >
               {loading ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
