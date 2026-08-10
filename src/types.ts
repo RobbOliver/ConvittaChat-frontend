@@ -6,7 +6,7 @@ export type MessageStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED'
 
 export type WhatsappSessionStatus = 'PENDING_QR' | 'CONNECTED' | 'DISCONNECTED';
 
-export type MessageMediaType = 'IMAGE' | 'STICKER' | 'VIDEO' | 'AUDIO' | 'DOCUMENT';
+export type MessageMediaType = 'IMAGE' | 'STICKER' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'GIF';
 
 export interface Contact {
   id: string;
@@ -57,6 +57,17 @@ export interface ConversationDetail {
   tabId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MessageSearchResult extends Message {
+  conversationId: string;
+  contact: Contact;
+  session: ConversationSession;
+}
+
+export interface InboxSearchResults {
+  chats: ConversationSummary[];
+  messages: MessageSearchResult[];
 }
 
 export interface ContactTab {

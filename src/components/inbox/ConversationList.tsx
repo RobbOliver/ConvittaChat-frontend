@@ -1,15 +1,13 @@
-import type { DragEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { CONVERSATION_DRAG_MIME } from '../../lib/dnd';
-import { contactDisplayName, formatTime } from '../../lib/format';
-import type { ContactTab, ConversationSummary } from '../../types';
-import { Avatar } from './Avatar';
-import { MoveToTabMenu } from './MoveToTabMenu';
+import type { ContactTab, ConversationSummary, InboxSearchResults } from '../../types';
+import { ConversationRow } from './ConversationRow';
 import { NewChatButton } from './NewChatButton';
+import { SearchResults } from './SearchResults';
 import { TabBar } from './TabBar';
 
 interface Props {
   conversations: ConversationSummary[];
+  searchResults: InboxSearchResults | undefined;
   isSearching: boolean;
   tabs: ContactTab[];
   activeTabId: string | null;
@@ -25,6 +23,7 @@ interface Props {
 
 export function ConversationList({
   conversations,
+  searchResults,
   isSearching,
   tabs,
   activeTabId,
@@ -37,10 +36,7 @@ export function ConversationList({
   onDeleteTab,
   onMoveConversation,
 }: Props) {
-  function handleDragStart(event: DragEvent, conversationId: string) {
-    event.dataTransfer.setData(CONVERSATION_DRAG_MIME, conversationId);
-    event.dataTransfer.effectAllowed = 'move';
-  }
+  const isSearchActive = searchValue.length > 0;
 
   return (
     <aside className="relative flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
@@ -71,8 +67,18 @@ export function ConversationList({
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar conversas, contatos ou mensagens"
-            className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-signal/60 focus:ring-2 focus:ring-signal/20"
+            className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-9 text-sm text-white outline-none placeholder:text-white/35 focus:border-signal/60 focus:ring-2 focus:ring-signal/20"
           />
+          {isSearchActive && (
+            <button
+              type="button"
+              onClick={() => onSearchChange('')}
+              aria-label="Limpar busca"
+              className="absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
+            >
+              <ClearIcon />
+            </button>
+          )}
         </div>
       </div>
 
@@ -85,54 +91,30 @@ export function ConversationList({
         onDropConversation={onMoveConversation}
       />
 
-      {searchValue && conversations.length === 0 && (
-        <p className="px-5 py-4 text-center text-sm text-white/40">
-          {isSearching ? 'Buscando…' : 'Nenhum resultado encontrado.'}
-        </p>
+      {isSearchActive ? (
+        <SearchResults
+          results={searchResults ?? { chats: [], messages: [] }}
+          isLoading={isSearching}
+          query={searchValue}
+          tabs={tabs}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onMoveConversation={onMoveConversation}
+        />
+      ) : (
+        <ul className="flex-1 overflow-y-auto px-2 pb-4">
+          {conversations.map((conversation) => (
+            <ConversationRow
+              key={conversation.id}
+              conversation={conversation}
+              tabs={tabs}
+              isSelected={conversation.id === selectedId}
+              onSelect={onSelect}
+              onMoveConversation={onMoveConversation}
+            />
+          ))}
+        </ul>
       )}
-
-      <ul className="flex-1 overflow-y-auto px-2 pb-4">
-        {conversations.map((conversation) => {
-          const { lastMessage } = conversation;
-          const isSelected = conversation.id === selectedId;
-          const name = contactDisplayName(conversation.contact);
-          return (
-            <li key={conversation.id} className="group relative">
-              <button
-                type="button"
-                draggable
-                onDragStart={(event) => handleDragStart(event, conversation.id)}
-                onClick={() => onSelect(conversation.id)}
-                className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${
-                  isSelected ? 'bg-white/10' : 'hover:bg-white/5'
-                }`}
-              >
-                <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} tone="dark" />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-2 pr-6">
-                    <span className="truncate text-sm font-medium text-white">{name}</span>
-                    {lastMessage && (
-                      <span className="shrink-0 font-mono text-[10px] text-white/35">
-                        {formatTime(lastMessage.createdAt)}
-                      </span>
-                    )}
-                  </span>
-                  {lastMessage && (
-                    <span className="mt-0.5 block truncate pr-6 text-xs text-white/50">{lastMessage.content}</span>
-                  )}
-                </span>
-              </button>
-              <div className="absolute right-2 top-3">
-                <MoveToTabMenu
-                  tabs={tabs}
-                  currentTabId={conversation.tabId}
-                  onMove={(tabId) => onMoveConversation(conversation.id, tabId)}
-                />
-              </div>
-            </li>
-          );
-        })}
-      </ul>
 
       <NewChatButton onStarted={onSelect} />
     </aside>
@@ -144,6 +126,14 @@ function SearchIcon() {
     <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
       <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.4" />
       <path d="m16 16-3.2-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ClearIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" aria-hidden>
+      <path d="M4 4l12 12M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

@@ -1,12 +1,14 @@
 import { useMessageMedia } from '../../hooks/useMessageMedia';
 import type { Message } from '../../types';
+import type { LightboxTarget } from './MediaLightbox';
 
 interface Props {
-  message: Pick<Message, 'id' | 'mediaType' | 'mediaFileName'>;
+  message: Pick<Message, 'id' | 'mediaType' | 'mediaFileName' | 'mediaMimeType'>;
   tone: 'outbound' | 'inbound';
+  onOpen?: (target: LightboxTarget) => void;
 }
 
-export function MediaAttachment({ message, tone }: Props) {
+export function MediaAttachment({ message, tone, onOpen }: Props) {
   const { url, isLoading, isError } = useMessageMedia(message.id);
 
   if (isLoading) {
@@ -29,28 +31,67 @@ export function MediaAttachment({ message, tone }: Props) {
   switch (message.mediaType) {
     case 'IMAGE':
       return (
-        <a href={url} target="_blank" rel="noreferrer">
+        <button
+          type="button"
+          onClick={() => onOpen?.({ type: 'image', url, mimeType: message.mediaMimeType })}
+          className="block cursor-zoom-in"
+        >
           <img src={url} alt="" className="max-h-72 w-full max-w-xs rounded-lg object-cover" />
-        </a>
+        </button>
       );
     case 'STICKER':
       return <img src={url} alt="" className="h-32 w-32 object-contain" />;
+    case 'GIF':
+      // WhatsApp "GIFs" are short silent videos — rendered like an actual animated GIF, not a
+      // video player: autoplay, loop, muted, no controls.
+      return (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          src={url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="max-h-72 w-full max-w-xs rounded-lg object-cover"
+        />
+      );
     case 'VIDEO':
-      return <video src={url} controls className="max-h-72 w-full max-w-xs rounded-lg" />;
+      return (
+        <button
+          type="button"
+          onClick={() => onOpen?.({ type: 'video', url, mimeType: message.mediaMimeType })}
+          className="group relative block max-h-72 w-full max-w-xs cursor-pointer overflow-hidden rounded-lg"
+        >
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video src={url} muted playsInline className="max-h-72 w-full object-cover" />
+          <span className="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-ink">
+              <PlayIcon />
+            </span>
+          </span>
+        </button>
+      );
     case 'AUDIO':
       return <audio src={url} controls className="h-10 w-64 max-w-full" />;
     case 'DOCUMENT':
       return (
-        <a
-          href={url}
-          download={message.mediaFileName ?? undefined}
-          className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+        <button
+          type="button"
+          onClick={() =>
+            onOpen?.({
+              type: 'document',
+              url,
+              mimeType: message.mediaMimeType,
+              fileName: message.mediaFileName,
+            })
+          }
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
             tone === 'outbound' ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-mist text-ink hover:bg-mist/70'
           }`}
         >
           <PaperclipIcon />
           <span className="max-w-[14rem] truncate">{message.mediaFileName ?? 'Arquivo'}</span>
-        </a>
+        </button>
       );
     default:
       return null;
@@ -67,6 +108,14 @@ function PaperclipIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className="ml-0.5 h-5 w-5" aria-hidden>
+      <path d="M6.5 4.5v11l9-5.5-9-5.5Z" />
     </svg>
   );
 }

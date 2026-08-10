@@ -38,10 +38,10 @@ export function InboxPage() {
 
   const { data: selectedConversation } = useConversation(selectedId);
 
-  const visibleConversations = useMemo(() => {
-    if (searchQuery) return searchResults ?? [];
-    return (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId);
-  }, [conversations, activeTabId, searchQuery, searchResults]);
+  const visibleConversations = useMemo(
+    () => (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId),
+    [conversations, activeTabId],
+  );
 
   return (
     <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
@@ -53,6 +53,7 @@ export function InboxPage() {
         )}
         <ConversationList
           conversations={visibleConversations}
+          searchResults={searchResults}
           isSearching={searchQuery.length > 0 && isSearching}
           tabs={tabs ?? []}
           activeTabId={activeTabId}
