@@ -1,4 +1,5 @@
 import { SidebarNav } from '../components/layout/SidebarNav';
+import { PixSettings } from '../components/settings/PixSettings';
 import { SalesFieldDefinitions } from '../components/settings/SalesFieldDefinitions';
 import { useCurrentUser, useUpdateInboxType } from '../hooks/useCurrentUser';
 import { PRESS } from '../lib/interactions';
@@ -92,6 +93,16 @@ export function SettingsPage() {
             ) : (
               <p className="mt-1 text-sm text-ink/50">Nenhuma configuração disponível para o Inbox por Setor ainda.</p>
             )}
+          </section>
+
+          <section className="mt-8 border-t border-line pt-8">
+            <h2 className="font-display text-lg font-semibold text-ink">Pix</h2>
+            <p className="mt-1 text-sm text-ink/50">
+              Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer conversa.
+            </p>
+            <div className="mt-4">
+              <PixSettings />
+            </div>
           </section>
         </div>
       </main>

@@ -13,11 +13,17 @@ export type MessageMediaType = 'IMAGE' | 'STICKER' | 'VIDEO' | 'AUDIO' | 'DOCUME
  * per-mode Inbox components will branch on. */
 export type InboxType = 'SECTOR' | 'SALES';
 
+export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM';
+
 export interface CurrentUser {
   id: string;
   name: string;
   email: string;
   inboxType: InboxType;
+  pixKey: string | null;
+  pixKeyType: PixKeyType | null;
+  pixMerchantName: string | null;
+  pixMerchantCity: string | null;
 }
 
 export interface Contact {
@@ -35,6 +41,15 @@ export interface ContactWithConversation extends Contact {
   session: { id: string; label: string; status: WhatsappSessionStatus };
 }
 
+/** One participant's current reaction (emoji) to a message — at most one per participant, like
+ * WhatsApp itself. `fromMe: true` (participantJid `"me"`) is always this app's own account. */
+export interface MessageReaction {
+  id: string;
+  participantJid: string;
+  fromMe: boolean;
+  emoji: string;
+}
+
 export interface Message {
   id: string;
   direction: MessageDirection;
@@ -46,6 +61,8 @@ export interface Message {
   /** Who sent this within a group chat. Only ever set for inbound group messages — absent
    * entirely on responses that don't bother including it (e.g. right after sending). */
   sender?: Contact | null;
+  /** Only populated on the conversation-detail response — absent (not empty) elsewhere. */
+  reactions?: MessageReaction[];
   createdAt: string;
 }
 
