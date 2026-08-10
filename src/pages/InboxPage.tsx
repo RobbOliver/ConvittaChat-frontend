@@ -4,7 +4,9 @@ import { MessageThread } from '../components/inbox/MessageThread';
 import { useConversation } from '../hooks/useConversation';
 import { useConversations } from '../hooks/useConversations';
 import { useContactTabs, useCreateContactTab, useDeleteContactTab } from '../hooks/useContactTabs';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useMoveConversation } from '../hooks/useMoveConversation';
+import { useSearchConversations } from '../hooks/useSearchConversations';
 import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 
 export function InboxPage() {
@@ -18,6 +20,9 @@ export function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [mobileView, setMobileView] = useState<'list' | 'thread'>('list');
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebouncedValue(searchInput.trim(), 300);
+  const { data: searchResults, isFetching: isSearching } = useSearchConversations(searchQuery);
 
   useEffect(() => {
     if (!selectedId && conversations && conversations.length > 0) {
@@ -33,10 +38,10 @@ export function InboxPage() {
 
   const { data: selectedConversation } = useConversation(selectedId);
 
-  const visibleConversations = useMemo(
-    () => (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId),
-    [conversations, activeTabId],
-  );
+  const visibleConversations = useMemo(() => {
+    if (searchQuery) return searchResults ?? [];
+    return (conversations ?? []).filter((c) => activeTabId === null || c.tabId === activeTabId);
+  }, [conversations, activeTabId, searchQuery, searchResults]);
 
   return (
     <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
@@ -48,14 +53,20 @@ export function InboxPage() {
         )}
         <ConversationList
           conversations={visibleConversations}
+          isSearching={searchQuery.length > 0 && isSearching}
           tabs={tabs ?? []}
           activeTabId={activeTabId}
           selectedId={selectedId}
+          searchValue={searchInput}
+          onSearchChange={setSearchInput}
           onSelect={(id) => {
             setSelectedId(id);
             setMobileView('thread');
           }}
-          onSelectTab={setActiveTabId}
+          onSelectTab={(id) => {
+            setSearchInput('');
+            setActiveTabId(id);
+          }}
           onCreateTab={(name) => createTab.mutate(name)}
           onDeleteTab={(id) => deleteTab.mutate(id)}
           onMoveConversation={(conversationId, tabId) => moveConversation.mutate({ conversationId, tabId })}

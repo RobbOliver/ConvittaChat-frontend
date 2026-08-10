@@ -10,9 +10,12 @@ import { TabBar } from './TabBar';
 
 interface Props {
   conversations: ConversationSummary[];
+  isSearching: boolean;
   tabs: ContactTab[];
   activeTabId: string | null;
   selectedId: string | undefined;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
   onSelect: (id: string) => void;
   onSelectTab: (tabId: string | null) => void;
   onCreateTab: (name: string) => void;
@@ -22,9 +25,12 @@ interface Props {
 
 export function ConversationList({
   conversations,
+  isSearching,
   tabs,
   activeTabId,
   selectedId,
+  searchValue,
+  onSearchChange,
   onSelect,
   onSelectTab,
   onCreateTab,
@@ -56,6 +62,20 @@ export function ConversationList({
         </span>
       </Link>
 
+      <div className="px-3 pb-3">
+        <div className="relative">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35">
+            <SearchIcon />
+          </span>
+          <input
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Buscar conversas, contatos ou mensagens"
+            className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-signal/60 focus:ring-2 focus:ring-signal/20"
+          />
+        </div>
+      </div>
+
       <TabBar
         tabs={tabs}
         activeTabId={activeTabId}
@@ -64,6 +84,12 @@ export function ConversationList({
         onDeleteTab={onDeleteTab}
         onDropConversation={onMoveConversation}
       />
+
+      {searchValue && conversations.length === 0 && (
+        <p className="px-5 py-4 text-center text-sm text-white/40">
+          {isSearching ? 'Buscando…' : 'Nenhum resultado encontrado.'}
+        </p>
+      )}
 
       <ul className="flex-1 overflow-y-auto px-2 pb-4">
         {conversations.map((conversation) => {
@@ -110,5 +136,14 @@ export function ConversationList({
 
       <NewChatButton onStarted={onSelect} />
     </aside>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+      <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="m16 16-3.2-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
   );
 }

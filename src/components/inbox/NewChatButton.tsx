@@ -1,7 +1,11 @@
 import axios from 'axios';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useConversations } from '../../hooks/useConversations';
 import { useStartConversation } from '../../hooks/useStartConversation';
 import { useWhatsappSessions } from '../../hooks/useWhatsappSessions';
+import { contactDisplayName } from '../../lib/format';
+import type { ConversationSummary } from '../../types';
+import { Avatar } from './Avatar';
 
 interface Props {
   onStarted: (conversationId: string) => void;
@@ -27,12 +31,13 @@ export function NewChatButton({ onStarted }: Props) {
 }
 
 function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: (id: string) => void }) {
+  const { data: conversations } = useConversations();
   const { data: sessions } = useWhatsappSessions();
   const connectedSessions = (sessions ?? []).filter((session) => session.status === 'CONNECTED');
   const startConversation = useStartConversation();
 
+  const [query, setQuery] = useState('');
   const [sessionId, setSessionId] = useState(connectedSessions[0]?.id ?? '');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // The sessions list loads asynchronously, so the initial useState above can miss it — pick a
@@ -42,11 +47,35 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectedSessions[0]?.id]);
 
-  async function handleSubmit(event: FormEvent) {
+  const { chats, groups } = useMemo(() => {
+    const all = conversations ?? [];
+    const q = query.trim().toLowerCase();
+    const matches = q
+      ? all.filter((conversation) => {
+          const name = contactDisplayName(conversation.contact).toLowerCase();
+          return name.includes(q) || conversation.contact.phoneNumber.includes(q);
+        })
+      : all;
+    return {
+      chats: matches.filter((conversation) => !conversation.contact.isGroup),
+      groups: matches.filter((conversation) => conversation.contact.isGroup),
+    };
+  }, [conversations, query]);
+
+  const digits = query.replace(/\D/g, '');
+  const hasExactNumberMatch = (conversations ?? []).some((c) => c.contact.phoneNumber === digits);
+  const canStartNew = digits.length >= 8 && !hasExactNumberMatch;
+
+  function selectConversation(id: string) {
+    onStarted(id);
+    onClose();
+  }
+
+  async function handleStartNew(event: FormEvent) {
     event.preventDefault();
     setError(null);
     try {
-      const conversation = await startConversation.mutateAsync({ sessionId, phoneNumber });
+      const conversation = await startConversation.mutateAsync({ sessionId, phoneNumber: digits });
       onStarted(conversation.id);
       onClose();
     } catch (err) {
@@ -58,20 +87,45 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl"
+        className="flex max-h-[32rem] w-full max-w-sm flex-col rounded-2xl bg-paper p-5 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 className="font-display text-lg font-semibold text-ink">Nova conversa</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-ink">Nova conversa</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="rounded-full p-1 text-ink/40 hover:bg-mist hover:text-ink"
+          >
+            <CloseIcon />
+          </button>
+        </div>
 
-        {connectedSessions.length === 0 ? (
-          <p className="mt-3 text-sm text-ink/50">
-            Conecte um número do WhatsApp na Home antes de iniciar uma conversa nova.
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            {connectedSessions.length > 1 && (
-              <div>
-                <label className="mb-1 block text-xs font-medium text-ink/50">Enviar de</label>
+        <input
+          autoFocus
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por nome ou número"
+          className="mt-3 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+        />
+
+        <div className="mt-2 flex-1 overflow-y-auto">
+          {chats.length > 0 && <ConversationSection title="Conversas" items={chats} onSelect={selectConversation} />}
+          {groups.length > 0 && <ConversationSection title="Grupos" items={groups} onSelect={selectConversation} />}
+          {chats.length === 0 && groups.length === 0 && (
+            <p className="py-6 text-center text-sm text-ink/40">Nenhuma conversa encontrada.</p>
+          )}
+        </div>
+
+        {canStartNew &&
+          (connectedSessions.length === 0 ? (
+            <p className="mt-3 border-t border-line pt-3 text-xs text-ink/40">
+              Conecte um número do WhatsApp na Home para falar com um número novo.
+            </p>
+          ) : (
+            <form onSubmit={handleStartNew} className="mt-3 space-y-2 border-t border-line pt-3">
+              {connectedSessions.length > 1 && (
                 <select
                   value={sessionId}
                   onChange={(event) => setSessionId(event.target.value)}
@@ -83,42 +137,56 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-ink/50">Número do WhatsApp</label>
-              <input
-                autoFocus
-                type="tel"
-                inputMode="tel"
-                value={phoneNumber}
-                onChange={(event) => setPhoneNumber(event.target.value)}
-                placeholder="Ex.: 5511999999999"
-                required
-                className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
-              />
-              <p className="mt-1 text-xs text-ink/35">Com código do país e DDD, só números.</p>
-            </div>
-            {error && <p className="text-sm text-stage-lost">{error}</p>}
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-mist"
-              >
-                Cancelar
-              </button>
+              )}
+              {error && <p className="text-sm text-stage-lost">{error}</p>}
               <button
                 type="submit"
-                disabled={startConversation.isPending || !sessionId}
-                className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 disabled:opacity-60"
+                disabled={startConversation.isPending}
+                className="w-full rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-signal/90 disabled:opacity-60"
               >
-                {startConversation.isPending ? 'Verificando…' : 'Iniciar conversa'}
+                {startConversation.isPending ? 'Verificando…' : `Iniciar conversa com ${digits}`}
               </button>
-            </div>
-          </form>
-        )}
+            </form>
+          ))}
       </div>
+    </div>
+  );
+}
+
+function ConversationSection({
+  title,
+  items,
+  onSelect,
+}: {
+  title: string;
+  items: ConversationSummary[];
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="mb-1">
+      <p className="px-1 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-ink/35">{title}</p>
+      <ul>
+        {items.map((conversation) => {
+          const name = contactDisplayName(conversation.contact);
+          return (
+            <li key={conversation.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(conversation.id)}
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-mist"
+              >
+                <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} tone="light" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-ink">{name}</span>
+                  <span className="block truncate font-mono text-xs text-ink/40">
+                    {conversation.contact.phoneNumber}
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -133,6 +201,14 @@ function PencilIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+      <path d="M5 5l10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
