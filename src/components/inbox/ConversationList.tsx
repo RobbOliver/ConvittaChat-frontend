@@ -5,6 +5,7 @@ import { contactDisplayName, formatTime } from '../../lib/format';
 import type { ContactTab, ConversationSummary } from '../../types';
 import { Avatar } from './Avatar';
 import { MoveToTabMenu } from './MoveToTabMenu';
+import { NewChatButton } from './NewChatButton';
 import { TabBar } from './TabBar';
 
 interface Props {
@@ -36,7 +37,7 @@ export function ConversationList({
   }
 
   return (
-    <aside className="flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
+    <aside className="relative flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
       <Link
         to="/"
         className="group flex items-center gap-2 px-5 pb-4 pt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
@@ -106,6 +107,8 @@ export function ConversationList({
           );
         })}
       </ul>
+
+      <NewChatButton onStarted={onSelect} />
     </aside>
   );
 }
