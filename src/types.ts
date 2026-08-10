@@ -25,6 +25,9 @@ export interface Message {
   mediaType: MessageMediaType | null;
   mediaMimeType: string | null;
   mediaFileName: string | null;
+  /** Who sent this within a group chat. Only ever set for inbound group messages — absent
+   * entirely on responses that don't bother including it (e.g. right after sending). */
+  sender?: Contact | null;
   createdAt: string;
 }
 

@@ -4,11 +4,12 @@ import { getInitials } from '../../lib/format';
 interface Props {
   name: string;
   avatarUrl?: string | null;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   tone?: 'dark' | 'light';
 }
 
 const SIZE_CLASSES: Record<NonNullable<Props['size']>, string> = {
+  xs: 'h-5 w-5 text-[9px]',
   sm: 'h-9 w-9 text-sm',
   md: 'h-10 w-10 text-sm',
 };

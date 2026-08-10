@@ -29,3 +29,13 @@ export function formatSearchDate(iso: string) {
   }
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
+
+// Distinct, readable-on-white hues, deterministically assigned per sender so the same person
+// keeps the same color across a group conversation (mirrors WhatsApp's own group sender colors).
+const SENDER_COLORS = ['#c0392b', '#2980b9', '#27ae60', '#8e44ad', '#d35400', '#16a085', '#c2185b', '#5d4037'];
+
+export function senderColor(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return SENDER_COLORS[hash % SENDER_COLORS.length];
+}

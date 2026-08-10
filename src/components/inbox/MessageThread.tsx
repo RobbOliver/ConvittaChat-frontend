@@ -1,12 +1,32 @@
 import { useState, type FormEvent } from 'react';
 import { useSendMedia } from '../../hooks/useSendMedia';
 import { useSendMessage } from '../../hooks/useSendMessage';
-import { contactDisplayName, formatTime } from '../../lib/format';
-import type { ConversationDetail } from '../../types';
+import { contactDisplayName, formatTime, senderColor } from '../../lib/format';
+import type { ConversationDetail, Message } from '../../types';
 import { AttachMenu } from './AttachMenu';
 import { Avatar } from './Avatar';
 import { MediaAttachment } from './MediaAttachment';
 import { MediaLightbox, type LightboxTarget } from './MediaLightbox';
+
+/** True right before a message that starts a new run from a different group sender than the
+ * previous one — that's the only spot the sender's name/photo needs to show, kept discreet. */
+function startsNewSenderRun(message: Message, previous: Message | undefined) {
+  if (!message.sender) return false;
+  if (!previous) return true;
+  return previous.direction !== message.direction || previous.sender?.id !== message.sender.id;
+}
+
+function GroupSenderTag({ sender, compact }: { sender: NonNullable<Message['sender']>; compact?: boolean }) {
+  const name = contactDisplayName(sender);
+  return (
+    <div className={`flex items-center gap-1.5 ${compact ? 'pb-1' : 'px-3.5 pt-2.5'}`}>
+      <Avatar name={name} avatarUrl={sender.avatarUrl} size="xs" tone="light" />
+      <span className="truncate text-xs font-semibold" style={{ color: senderColor(sender.id) }}>
+        {name}
+      </span>
+    </div>
+  );
+}
 
 interface Props {
   conversation: ConversationDetail;
@@ -64,13 +84,18 @@ export function MessageThread({ conversation, onBack }: Props) {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-mist/40 px-4 py-5 sm:px-5">
-        {conversation.messages.map((message) => {
+        {conversation.messages.map((message, index) => {
           const isOutbound = message.direction === 'OUTBOUND';
           const tone = isOutbound ? 'outbound' : 'inbound';
+          const showSenderTag =
+            conversation.contact.isGroup &&
+            !isOutbound &&
+            startsNewSenderRun(message, conversation.messages[index - 1]);
 
           if (message.mediaType === 'STICKER') {
             return (
               <div key={message.id} className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
+                {showSenderTag && message.sender && <GroupSenderTag sender={message.sender} compact />}
                 <MediaAttachment message={message} tone={tone} onOpen={setLightboxTarget} />
                 <span className="mt-1 font-mono text-[10px] text-ink/35">{formatTime(message.createdAt)}</span>
               </div>
@@ -84,6 +109,7 @@ export function MessageThread({ conversation, onBack }: Props) {
                   isOutbound ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
                 }`}
               >
+                {showSenderTag && message.sender && <GroupSenderTag sender={message.sender} />}
                 {message.mediaType && (
                   <div className="p-1.5 pb-0">
                     <MediaAttachment message={message} tone={tone} onOpen={setLightboxTarget} />
