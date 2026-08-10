@@ -1,6 +1,6 @@
 import type { DragEvent } from 'react';
 import { CONVERSATION_DRAG_MIME } from '../../lib/dnd';
-import { contactDisplayName, formatTime } from '../../lib/format';
+import { contactDisplayName, formatBadgeCount, formatTime } from '../../lib/format';
 import { PRESS } from '../../lib/interactions';
 import type { ContactTab, ConversationSummary } from '../../types';
 import { Avatar } from './Avatar';
@@ -56,7 +56,7 @@ export function ConversationRow({
             )}
             {conversation.unreadCount > 0 && (
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-signal px-1 text-[10px] font-semibold leading-none text-ink">
-                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                {formatBadgeCount(conversation.unreadCount)}
               </span>
             )}
           </span>

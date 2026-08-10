@@ -1,5 +1,6 @@
 import { useState, type DragEvent, type FormEvent } from 'react';
 import { CONVERSATION_DRAG_MIME } from '../../lib/dnd';
+import { formatBadgeCount } from '../../lib/format';
 import { PRESS, PRESS_SM } from '../../lib/interactions';
 import type { ContactTab } from '../../types';
 
@@ -26,7 +27,7 @@ function UnreadBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
     <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-semibold leading-none text-ink">
-      {count > 99 ? '99+' : count}
+      {formatBadgeCount(count)}
     </span>
   );
 }

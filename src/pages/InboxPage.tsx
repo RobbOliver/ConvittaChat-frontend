@@ -54,13 +54,16 @@ export function InboxPage() {
     [conversations, activeTabId],
   );
 
+  // Counts unread *conversations*, not total unread messages — a folder with 3 chats that each
+  // have several unread messages should badge "3", the same way WhatsApp's own chat-list badges work.
   const unread = useMemo(() => {
     const byTab: Record<string, number> = {};
     let total = 0;
     for (const conversation of conversations ?? []) {
-      total += conversation.unreadCount;
+      if (conversation.unreadCount <= 0) continue;
+      total += 1;
       if (conversation.tabId) {
-        byTab[conversation.tabId] = (byTab[conversation.tabId] ?? 0) + conversation.unreadCount;
+        byTab[conversation.tabId] = (byTab[conversation.tabId] ?? 0) + 1;
       }
     }
     return { total, byTab };

@@ -34,13 +34,13 @@ export function ReactButton({ align, onReact }: ReactButtonProps) {
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative shrink-0 self-end">
+    <div ref={containerRef} className="relative shrink-0">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-label="Reagir à mensagem"
         title="Reagir"
-        className={`flex h-7 w-7 items-center justify-center rounded-full text-ink/30 hover:bg-mist hover:text-ink/70 ${PRESS_SM}`}
+        className={`flex h-6 w-6 items-center justify-center rounded-full text-ink/30 hover:bg-mist hover:text-ink/70 ${PRESS_SM}`}
       >
         <SmileIcon />
       </button>

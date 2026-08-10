@@ -40,10 +40,16 @@ interface Props {
   onOpenDetails?: () => void;
 }
 
+interface PendingAttachment {
+  file: File;
+  previewUrl: string | null;
+}
+
 export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }: Props) {
   const [draft, setDraft] = useState('');
   const [lightboxTarget, setLightboxTarget] = useState<LightboxTarget | null>(null);
   const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
   const sendMessage = useSendMessage(conversation.id);
   const sendMedia = useSendMedia(conversation.id);
   const reactToMessage = useReactToMessage(conversation.id);
@@ -59,8 +65,17 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
   useEffect(() => {
     const isNewConversation = previousConversationId.current !== conversation.id;
     previousConversationId.current = conversation.id;
+    if (isNewConversation) setPendingAttachment(null);
     bottomRef.current?.scrollIntoView({ behavior: isNewConversation ? 'auto' : 'smooth' });
   }, [conversation.id, conversation.messages.length]);
+
+  // Release the pasted/picked image's object URL once it's no longer needed, whether that's
+  // because it got replaced, cleared, or the whole thread unmounted.
+  useEffect(() => {
+    return () => {
+      if (pendingAttachment?.previewUrl) URL.revokeObjectURL(pendingAttachment.previewUrl);
+    };
+  }, [pendingAttachment]);
 
   // Auto-grow the composer as the user types multi-line messages, capped so it never eats the
   // whole thread — matches WhatsApp's own composer behavior.
@@ -72,6 +87,13 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
   }, [draft]);
 
   function sendDraft() {
+    if (pendingAttachment) {
+      const caption = draft.trim() || undefined;
+      sendMedia.mutate({ file: pendingAttachment.file, caption });
+      setPendingAttachment(null);
+      setDraft('');
+      return;
+    }
     const content = draft.trim();
     if (!content) return;
     setDraft('');
@@ -92,19 +114,27 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
     }
   }
 
-  function handleSelectFile(file: File) {
-    sendMedia.mutate(file);
+  // Doesn't send right away — staged as a preview so the user can type a caption to go with it
+  // first, same as picking a file does. Replaces any attachment already staged.
+  function attachFile(file: File) {
+    const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+    setPendingAttachment({ file, previewUrl });
+    textareaRef.current?.focus();
   }
 
-  // Lets a copied image (from anywhere — a screenshot, another app, a webpage) be sent just by
-  // pasting into the composer, reusing the exact same upload path as the attach menu.
+  function handleSelectFile(file: File) {
+    attachFile(file);
+  }
+
+  // Lets a copied image (from anywhere — a screenshot, another app, a webpage) be staged for
+  // sending just by pasting into the composer, same flow as picking a file from the attach menu.
   function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
     const imageItem = Array.from(event.clipboardData.items).find((item) => item.type.startsWith('image/'));
     if (!imageItem) return;
     const file = imageItem.getAsFile();
     if (!file) return;
     event.preventDefault();
-    sendMedia.mutate(file);
+    attachFile(file);
   }
 
   function handleReact(messageId: string, emoji: string) {
@@ -170,7 +200,7 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
 
           if (message.mediaType === 'STICKER') {
             return (
-              <div key={message.id} className={`flex items-end gap-1 ${isOutbound ? 'flex-row-reverse' : ''}`}>
+              <div key={message.id} className={`flex items-center gap-0.5 ${isOutbound ? 'flex-row-reverse' : ''}`}>
                 <div className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                   {showSenderTag && message.sender && <GroupSenderTag sender={message.sender} compact />}
                   <MediaAttachment message={message} tone={tone} onOpen={setLightboxTarget} />
@@ -189,10 +219,10 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
           }
 
           return (
-            <div key={message.id} className={`flex items-end gap-1 ${isOutbound ? 'flex-row-reverse' : ''}`}>
+            <div key={message.id} className={`flex items-center gap-0.5 ${isOutbound ? 'flex-row-reverse' : ''}`}>
               <div className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`flex max-w-[85%] flex-col rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
+                  className={`flex min-w-[96px] max-w-[85%] flex-col rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
                     isOutbound ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
                   }`}
                 >
@@ -237,6 +267,30 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
           </p>
         )}
         {sendMedia.isPending && <p className="mb-2 text-center text-xs text-ink/40">Enviando arquivo…</p>}
+        {pendingAttachment && (
+          <div className="mb-2 flex items-center gap-3 rounded-xl border border-line bg-mist/40 p-2">
+            {pendingAttachment.previewUrl ? (
+              <img
+                src={pendingAttachment.previewUrl}
+                alt=""
+                className="h-12 w-12 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-mist text-ink/40">
+                <FileIcon />
+              </div>
+            )}
+            <span className="min-w-0 flex-1 truncate text-xs text-ink/60">{pendingAttachment.file.name}</span>
+            <button
+              type="button"
+              onClick={() => setPendingAttachment(null)}
+              aria-label="Remover anexo"
+              className={`shrink-0 rounded-full p-1 text-ink/40 hover:bg-mist hover:text-ink ${PRESS_SM}`}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           <AttachMenu onSelectFile={handleSelectFile} disabled={!canSend || sendMedia.isPending} />
           <button
@@ -256,16 +310,16 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="Digite uma mensagem"
+            placeholder={pendingAttachment ? 'Digite uma legenda (opcional)' : 'Digite uma mensagem'}
             disabled={!canSend}
-            className="max-h-[120px] flex-1 resize-none rounded-2xl border border-line bg-mist/60 px-4 py-2.5 text-sm leading-relaxed text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20 disabled:opacity-50"
+            className="hide-scrollbar max-h-[120px] flex-1 resize-none rounded-2xl border border-line bg-mist/60 px-4 py-2.5 text-sm leading-relaxed text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20 disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!canSend || sendMessage.isPending}
+            disabled={!canSend || sendMessage.isPending || sendMedia.isPending}
             className={`rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 disabled:opacity-50 ${PRESS}`}
           >
-            {sendMessage.isPending ? 'Enviando…' : 'Enviar'}
+            {sendMessage.isPending || sendMedia.isPending ? 'Enviando…' : 'Enviar'}
           </button>
         </div>
       </form>
@@ -273,6 +327,28 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
       {lightboxTarget && <MediaLightbox target={lightboxTarget} onClose={() => setLightboxTarget(null)} />}
       <PixComposerModal open={pixModalOpen} conversationId={conversation.id} onClose={() => setPixModalOpen(false)} />
     </section>
+  );
+}
+
+function FileIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden>
+      <path
+        d="M6 3.5h5l3.5 3.5V16a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M11 3.5V7h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+      <path d="M5 5l10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
   );
 }
 

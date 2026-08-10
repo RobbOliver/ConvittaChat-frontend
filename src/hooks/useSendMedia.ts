@@ -8,9 +8,10 @@ export function useSendMedia(conversationId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (input: { file: File; caption?: string }) => {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', input.file);
+      if (input.caption) formData.append('caption', input.caption);
       return (
         await api.post<Message>(`/conversations/${conversationId}/messages/media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },

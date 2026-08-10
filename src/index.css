@@ -30,3 +30,15 @@ body {
   background: var(--color-paper);
   font-family: var(--font-sans);
 }
+
+/* Keeps an overflowing scrollable element scrollable (wheel/touch/keyboard all still work) while
+ * hiding the browser's own scrollbar track/arrows — used on the message composer, which grows
+ * tall enough to scroll but shouldn't show OS-style up/down arrow buttons alongside it. */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

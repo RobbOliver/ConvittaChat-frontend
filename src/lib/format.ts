@@ -1,3 +1,9 @@
+/** Caps a notification count for display, e.g. 99 -> "99", 100 -> "+99" — never lets a folder
+ * badge grow wide enough to break its pill shape. */
+export function formatBadgeCount(count: number) {
+  return count > 99 ? '+99' : String(count);
+}
+
 export function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
