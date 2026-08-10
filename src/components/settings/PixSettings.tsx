@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useCurrentUser, useUpdatePixConfig } from '../../hooks/useCurrentUser';
 import { PRESS } from '../../lib/interactions';
@@ -11,6 +12,16 @@ const PIX_KEY_TYPE_LABEL: Record<PixKeyType, string> = {
   RANDOM: 'Chave aleatória',
 };
 
+// Must match exactly the format your bank registered the key under — a Pix key that's merely
+// formatted differently (dots in a CPF, a phone missing the country code) points at nothing.
+const PIX_KEY_TYPE_PLACEHOLDER: Record<PixKeyType, string> = {
+  CPF: 'Ex.: 12345678900 (com ou sem pontuação)',
+  CNPJ: 'Ex.: 12345678000199 (com ou sem pontuação)',
+  EMAIL: 'Ex.: email@exemplo.com',
+  PHONE: 'Ex.: 11988887777 (DDD + número, sem +55)',
+  RANDOM: 'Cole a chave aleatória exata do app do banco',
+};
+
 /** Configures the Pix key used to generate "Cobrar via Pix" charges from any conversation — set
  * once here, reused everywhere, so it never needs retyping per contact or per charge. */
 export function PixSettings() {
@@ -22,6 +33,7 @@ export function PixSettings() {
   const [pixMerchantName, setPixMerchantName] = useState('');
   const [pixMerchantCity, setPixMerchantCity] = useState('');
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -35,6 +47,7 @@ export function PixSettings() {
     event.preventDefault();
     if (!pixKey.trim() || !pixMerchantName.trim()) return;
     setSaved(false);
+    setError(null);
     updatePixConfig.mutate(
       {
         pixKey: pixKey.trim(),
@@ -42,7 +55,15 @@ export function PixSettings() {
         pixMerchantName: pixMerchantName.trim(),
         pixMerchantCity: pixMerchantCity.trim() || undefined,
       },
-      { onSuccess: () => setSaved(true) },
+      {
+        onSuccess: () => setSaved(true),
+        onError: (err) => {
+          const message = axios.isAxiosError(err)
+            ? (err.response?.data as { message?: string })?.message
+            : undefined;
+          setError(message ?? 'Não foi possível salvar. Tente novamente.');
+        },
+      },
     );
   }
 
@@ -74,7 +95,7 @@ export function PixSettings() {
             setPixKey(event.target.value);
             setSaved(false);
           }}
-          placeholder="Ex.: email@exemplo.com"
+          placeholder={PIX_KEY_TYPE_PLACEHOLDER[pixKeyType]}
           className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
         />
       </label>
@@ -116,10 +137,8 @@ export function PixSettings() {
           {updatePixConfig.isPending ? 'Salvando…' : 'Salvar'}
         </button>
         {saved && <span className="text-sm text-ink/50">Salvo.</span>}
-        {updatePixConfig.isError && (
-          <span className="text-sm text-stage-lost">Não foi possível salvar. Tente novamente.</span>
-        )}
       </div>
+      {error && <p className="text-sm text-stage-lost">{error}</p>}
     </form>
   );
 }
