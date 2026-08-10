@@ -293,16 +293,18 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
         )}
         <div className="flex items-end gap-2">
           <AttachMenu onSelectFile={handleSelectFile} disabled={!canSend || sendMedia.isPending} />
-          <button
-            type="button"
-            onClick={() => setPixModalOpen(true)}
-            disabled={!canSend}
-            aria-label="Cobrar via Pix"
-            title="Cobrar via Pix"
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
-          >
-            <PixIcon />
-          </button>
+          {inboxType === 'SALES' && (
+            <button
+              type="button"
+              onClick={() => setPixModalOpen(true)}
+              disabled={!canSend}
+              aria-label="Cobrar via Pix"
+              title="Cobrar via Pix"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
+            >
+              <PixIcon />
+            </button>
+          )}
           <textarea
             ref={textareaRef}
             rows={1}

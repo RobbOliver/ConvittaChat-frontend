@@ -89,20 +89,18 @@ export function SettingsPage() {
                 <div className="mt-4">
                   <SalesFieldDefinitions />
                 </div>
+
+                <h3 className="mt-8 font-display text-base font-semibold text-ink">Pix</h3>
+                <p className="mt-1 text-sm text-ink/50">
+                  Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer conversa.
+                </p>
+                <div className="mt-4">
+                  <PixSettings />
+                </div>
               </>
             ) : (
               <p className="mt-1 text-sm text-ink/50">Nenhuma configuração disponível para o Inbox por Setor ainda.</p>
             )}
-          </section>
-
-          <section className="mt-8 border-t border-line pt-8">
-            <h2 className="font-display text-lg font-semibold text-ink">Pix</h2>
-            <p className="mt-1 text-sm text-ink/50">
-              Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer conversa.
-            </p>
-            <div className="mt-4">
-              <PixSettings />
-            </div>
           </section>
         </div>
       </main>
