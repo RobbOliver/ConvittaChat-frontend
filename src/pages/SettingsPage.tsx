@@ -1,4 +1,5 @@
 import { SidebarNav } from '../components/layout/SidebarNav';
+import { SalesFieldDefinitions } from '../components/settings/SalesFieldDefinitions';
 import { useCurrentUser, useUpdateInboxType } from '../hooks/useCurrentUser';
 import { PRESS } from '../lib/interactions';
 import type { InboxType } from '../types';
@@ -15,6 +16,11 @@ const INBOX_TYPE_OPTIONS: { value: InboxType; title: string; description: string
     description: 'Organiza as conversas com foco no fluxo comercial.',
   },
 ];
+
+const INBOX_TYPE_LABEL: Record<InboxType, string> = {
+  SECTOR: 'Inbox por Setor',
+  SALES: 'Inbox para Vendas',
+};
 
 export function SettingsPage() {
   const { data: user, isLoading } = useCurrentUser();
@@ -65,6 +71,26 @@ export function SettingsPage() {
 
             {updateInboxType.isError && (
               <p className="mt-3 text-sm text-stage-lost">Não foi possível salvar essa configuração. Tente novamente.</p>
+            )}
+          </section>
+
+          <section className="mt-8 border-t border-line pt-8">
+            <h2 className="font-display text-lg font-semibold text-ink">
+              Configurações do {INBOX_TYPE_LABEL[current]}
+            </h2>
+
+            {current === 'SALES' ? (
+              <>
+                <p className="mt-1 text-sm text-ink/50">
+                  Campos personalizados disponíveis para todos os contatos — cada contato preenche seu próprio valor
+                  na aba lateral do chat.
+                </p>
+                <div className="mt-4">
+                  <SalesFieldDefinitions />
+                </div>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-ink/50">Nenhuma configuração disponível para o Inbox por Setor ainda.</p>
             )}
           </section>
         </div>

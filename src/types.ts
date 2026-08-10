@@ -84,11 +84,21 @@ export interface ConversationDetail {
   updatedAt: string;
 }
 
-/** Free-form key/value info attached to a contact (Sales Inbox only) — e.g. key "endereço",
- * value the actual address. A future quick-message template feature will substitute {key}
- * placeholders in outgoing messages with a contact's matching field value. */
+/** A custom-field key set up once in Configurações (Sales Inbox), shared across every contact —
+ * e.g. "endereço". Managed in Settings, not per contact. */
+export interface ContactFieldDefinition {
+  id: string;
+  key: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One contact's value for a field definition — absent entirely if that contact never had this
+ * field filled in. A future quick-message template feature will substitute {key} placeholders in
+ * outgoing messages with a contact's matching field value. */
 export interface ContactField {
   id: string;
+  definitionId: string;
   key: string;
   value: string;
   createdAt: string;
