@@ -41,6 +41,16 @@ export function useDisconnectWhatsappSession() {
   });
 }
 
+/** Hides the card from Home for good — distinct from disconnect, which keeps it reconnectable.
+ * Conversation history for that number is untouched, only the connection-list card disappears. */
+export function useRemoveWhatsappSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => (await api.post(`/whatsapp-sessions/${id}/remove`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY }),
+  });
+}
+
 export function useReconnectWhatsappSession() {
   const queryClient = useQueryClient();
   return useMutation({

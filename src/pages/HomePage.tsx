@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { SidebarNav } from '../components/layout/SidebarNav';
 import { SessionStatusBadge } from '../components/whatsapp/SessionStatusBadge';
 import { WhatsappConnectModal } from '../components/whatsapp/WhatsappConnectModal';
-import { useDisconnectWhatsappSession, useWhatsappSessions } from '../hooks/useWhatsappSessions';
+import {
+  useDisconnectWhatsappSession,
+  useRemoveWhatsappSession,
+  useWhatsappSessions,
+} from '../hooks/useWhatsappSessions';
 import { PRESS } from '../lib/interactions';
 
 const MAX_SESSIONS = 5;
@@ -10,6 +14,7 @@ const MAX_SESSIONS = 5;
 export function HomePage() {
   const { data: sessions, isLoading } = useWhatsappSessions();
   const disconnectSession = useDisconnectWhatsappSession();
+  const removeSession = useRemoveWhatsappSession();
   const [modalOpen, setModalOpen] = useState(false);
   const [reconnectId, setReconnectId] = useState<string | undefined>(undefined);
 
@@ -85,8 +90,9 @@ export function HomePage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => disconnectSession.mutate(session.id)}
-                        className={`text-xs font-medium text-ink/50 hover:text-stage-lost ${PRESS}`}
+                        onClick={() => removeSession.mutate(session.id)}
+                        disabled={removeSession.isPending}
+                        className={`text-xs font-medium text-ink/50 hover:text-stage-lost disabled:opacity-50 ${PRESS}`}
                       >
                         Remover
                       </button>
