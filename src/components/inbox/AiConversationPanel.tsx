@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useUpdateConversationAi } from '../../hooks/useUpdateConversationAi';
 import type { ConversationDetail } from '../../types';
+import { AiContextResetModal } from './AiContextResetModal';
+import { PRESS } from '../../lib/interactions';
 import { Toggle } from '../ui/Toggle';
 
 interface Props {
@@ -15,6 +17,7 @@ export function AiConversationPanel({ conversation }: Props) {
   const { data: currentUser } = useCurrentUser();
   const updateAi = useUpdateConversationAi();
   const [objective, setObjective] = useState(conversation.aiObjective ?? '');
+  const [resetModalOpen, setResetModalOpen] = useState(false);
 
   useEffect(() => {
     setObjective(conversation.aiObjective ?? '');
@@ -89,6 +92,20 @@ export function AiConversationPanel({ conversation }: Props) {
           <p className="text-xs text-ink/35">A IA ainda não aprendeu nada duradouro sobre esse cliente.</p>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setResetModalOpen(true)}
+        className={`mt-4 text-xs font-medium text-ink/50 hover:text-ink ${PRESS}`}
+      >
+        Zerar contexto…
+      </button>
+
+      <AiContextResetModal
+        open={resetModalOpen}
+        conversationId={conversation.id}
+        onClose={() => setResetModalOpen(false)}
+      />
     </div>
   );
 }
