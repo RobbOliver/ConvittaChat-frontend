@@ -25,6 +25,15 @@ export interface AiBusinessInfo {
   policies?: string[];
 }
 
+/** One weekly recurring window — `days` uses JS's own 0=domingo..6=sábado numbering, `start`/`end`
+ * are "HH:mm" 24h. This is what the backend actually validates a requested time against —
+ * AiBusinessInfo.hours stays a free-text display line only, never parsed for that. */
+export interface AiBusinessHoursRange {
+  days: number[];
+  start: string;
+  end: string;
+}
+
 /** One item in the admin's AI catalog — generic on purpose (product, service, or menu item). */
 export interface AiCatalogItem {
   id: string;
@@ -48,6 +57,7 @@ export interface CurrentUser {
   aiBusinessName: string | null;
   aiPersona: string | null;
   aiBusinessInfo: AiBusinessInfo | null;
+  aiBusinessHours: AiBusinessHoursRange[] | null;
   aiExtraRules: string | null;
   /** Account-wide default "Objetivo" — every conversation inherits this live unless it has its
    * own override (ConversationDetail.aiObjective). */

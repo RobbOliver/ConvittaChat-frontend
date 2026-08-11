@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { getToken } from '../lib/authToken';
-import type { AiBusinessInfo, CurrentUser, InboxType, PixKeyType } from '../types';
+import type { AiBusinessHoursRange, AiBusinessInfo, CurrentUser, InboxType, PixKeyType } from '../types';
 
 export const CURRENT_USER_KEY = ['auth', 'me'];
 
@@ -47,6 +47,7 @@ export interface AiConfigInput {
   aiBusinessName?: string;
   aiPersona?: string;
   aiBusinessInfo?: AiBusinessInfo;
+  aiBusinessHours?: AiBusinessHoursRange[];
   aiExtraRules?: string;
   aiDefaultObjective?: string;
   aiFallbackMessage?: string;

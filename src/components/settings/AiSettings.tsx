@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useCurrentUser, useUpdateAiConfig } from '../../hooks/useCurrentUser';
-import { PRESS } from '../../lib/interactions';
+import { PRESS, PRESS_SM } from '../../lib/interactions';
 import { Toggle } from '../ui/Toggle';
+
+const WEEKDAYS = [
+  { day: 0, label: 'Dom' },
+  { day: 1, label: 'Seg' },
+  { day: 2, label: 'Ter' },
+  { day: 3, label: 'Qua' },
+  { day: 4, label: 'Qui' },
+  { day: 5, label: 'Sex' },
+  { day: 6, label: 'Sáb' },
+];
 
 function splitList(value: string): string[] | undefined {
   const items = value
@@ -31,6 +41,9 @@ export function AiSettings() {
   const [businessName, setBusinessName] = useState('');
   const [persona, setPersona] = useState('');
   const [hours, setHours] = useState('');
+  const [hoursDays, setHoursDays] = useState<number[]>([]);
+  const [hoursStart, setHoursStart] = useState('09:00');
+  const [hoursEnd, setHoursEnd] = useState('19:00');
   const [serviceAreas, setServiceAreas] = useState('');
   const [paymentMethods, setPaymentMethods] = useState('');
   const [minOrder, setMinOrder] = useState('');
@@ -48,6 +61,10 @@ export function AiSettings() {
     setBusinessName(user.aiBusinessName ?? '');
     setPersona(user.aiPersona ?? '');
     setHours(user.aiBusinessInfo?.hours ?? '');
+    const structured = user.aiBusinessHours?.[0];
+    setHoursDays(structured?.days ?? []);
+    setHoursStart(structured?.start ?? '09:00');
+    setHoursEnd(structured?.end ?? '19:00');
     setServiceAreas((user.aiBusinessInfo?.serviceAreas ?? []).join(', '));
     setPaymentMethods((user.aiBusinessInfo?.paymentMethods ?? []).join(', '));
     setMinOrder(
@@ -62,6 +79,11 @@ export function AiSettings() {
 
   function markDirty() {
     setSaved(false);
+  }
+
+  function toggleDay(day: number) {
+    setHoursDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()));
+    markDirty();
   }
 
   function handleToggle(next: boolean) {
@@ -91,6 +113,10 @@ export function AiSettings() {
           minOrderCents,
           policies: splitLines(policies),
         },
+        aiBusinessHours:
+          hoursDays.length > 0 && hoursStart && hoursEnd
+            ? [{ days: hoursDays, start: hoursStart, end: hoursEnd }]
+            : [],
         aiExtraRules: extraRules.trim() || undefined,
         aiDefaultObjective: defaultObjective.trim() || undefined,
         aiFallbackMessage: fallbackMessage.trim() || undefined,
@@ -155,7 +181,7 @@ export function AiSettings() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className={labelClass}>Horário de funcionamento</span>
+            <span className={labelClass}>Horário de funcionamento (texto pra IA mostrar ao cliente)</span>
             <input
               value={hours}
               onChange={(e) => {
@@ -179,6 +205,57 @@ export function AiSettings() {
               className={inputClass}
             />
           </label>
+        </div>
+
+        <div className="rounded-lg border border-line bg-white px-3 py-3">
+          <span className={labelClass}>Dias e horário válidos pra confirmar um pedido</span>
+          <p className="mb-2 text-xs text-ink/40">
+            Diferente do texto acima, isto é o que o sistema realmente confere — a IA nunca confirma um
+            pedido pra um horário fora daqui, mesmo que o cliente insista.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {WEEKDAYS.map(({ day, label }) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => toggleDay(day)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${PRESS_SM} ${
+                  hoursDays.includes(day)
+                    ? 'border-signal bg-signal text-ink'
+                    : 'border-line bg-paper text-ink/50 hover:bg-mist'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="time"
+              value={hoursStart}
+              onChange={(e) => {
+                setHoursStart(e.target.value);
+                markDirty();
+              }}
+              className={`${inputClass} w-auto`}
+            />
+            <span className="text-sm text-ink/40">até</span>
+            <input
+              type="time"
+              value={hoursEnd}
+              onChange={(e) => {
+                setHoursEnd(e.target.value);
+                markDirty();
+              }}
+              className={`${inputClass} w-auto`}
+            />
+          </div>
+          {hoursDays.length === 0 && (
+            <p className="mt-2 text-xs text-ink/40">
+              Nenhum dia selecionado — sem isso, o sistema não bloqueia nenhum horário (só o texto acima é
+              mostrado ao cliente).
+            </p>
+          )}
         </div>
 
         <label className="block">
