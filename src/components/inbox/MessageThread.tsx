@@ -220,9 +220,9 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
 
           return (
             <div key={message.id} className={`flex items-center gap-0.5 ${isOutbound ? 'flex-row-reverse' : ''}`}>
-              <div className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
+              <div className={`flex min-w-0 flex-1 flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`flex min-w-[96px] max-w-[85%] flex-col rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
+                  className={`min-w-[96px] max-w-[85%] rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
                     isOutbound ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
                   }`}
                 >
