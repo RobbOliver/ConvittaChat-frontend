@@ -89,10 +89,10 @@ export function InboxPage() {
         {syncingSessions.size > 0 && (
           <div className="bg-signal/15 px-4 py-2 text-center">
             <p className="text-xs font-medium text-signal">
-              Sincronizando conversas… {syncingMessageCount.toLocaleString('pt-BR')} mensagens carregadas até agora
+              Identificando contatos e grupos… {syncingMessageCount.toLocaleString('pt-BR')} mensagens processadas até agora
             </p>
             <p className="text-[11px] text-signal/70">
-              Pode levar alguns minutos num histórico grande — mensagens novas continuam chegando normalmente enquanto isso
+              O histórico de mensagens não é importado — cada conversa começa vazia a partir de agora, mensagens novas continuam chegando normalmente enquanto isso
             </p>
           </div>
         )}
