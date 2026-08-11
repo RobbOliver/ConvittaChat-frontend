@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useUpdateConversationAi } from '../../hooks/useUpdateConversationAi';
 import type { ConversationDetail } from '../../types';
 import { Toggle } from '../ui/Toggle';
@@ -11,6 +12,7 @@ interface Props {
  * without touching the account-wide setting, an editable "Objetivo" note guiding what the AI
  * should still find out, and two read-only blocks the AI itself maintains — never hand-edited. */
 export function AiConversationPanel({ conversation }: Props) {
+  const { data: currentUser } = useCurrentUser();
   const updateAi = useUpdateConversationAi();
   const [objective, setObjective] = useState(conversation.aiObjective ?? '');
 
@@ -51,9 +53,17 @@ export function AiConversationPanel({ conversation }: Props) {
           onChange={(event) => setObjective(event.target.value)}
           onBlur={saveObjectiveIfChanged}
           rows={2}
-          placeholder="O que ainda falta pra fechar — ex.: confirmar endereço e horário"
+          placeholder={
+            currentUser?.aiDefaultObjective
+              ? `Usando o padrão: "${currentUser.aiDefaultObjective}"`
+              : 'O que ainda falta pra fechar — ex.: confirmar endereço e horário'
+          }
           className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none placeholder:text-ink/30 focus:border-signal focus:ring-2 focus:ring-signal/20"
         />
+        <span className="mt-1 block text-xs text-ink/40">
+          Em branco, usa o objetivo padrão configurado em Configurações. Preencher aqui vale só pra
+          esse contato.
+        </span>
       </label>
 
       <div className="mt-4">

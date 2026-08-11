@@ -36,6 +36,7 @@ export function AiSettings() {
   const [minOrder, setMinOrder] = useState('');
   const [policies, setPolicies] = useState('');
   const [extraRules, setExtraRules] = useState('');
+  const [defaultObjective, setDefaultObjective] = useState('');
   const [fallbackMessage, setFallbackMessage] = useState('');
   const [maxRepliesPerDay, setMaxRepliesPerDay] = useState('200');
   const [saved, setSaved] = useState(false);
@@ -54,6 +55,7 @@ export function AiSettings() {
     );
     setPolicies((user.aiBusinessInfo?.policies ?? []).join('\n'));
     setExtraRules(user.aiExtraRules ?? '');
+    setDefaultObjective(user.aiDefaultObjective ?? '');
     setFallbackMessage(user.aiFallbackMessage ?? '');
     setMaxRepliesPerDay(String(user.aiMaxRepliesPerDay));
   }, [user]);
@@ -90,6 +92,7 @@ export function AiSettings() {
           policies: splitLines(policies),
         },
         aiExtraRules: extraRules.trim() || undefined,
+        aiDefaultObjective: defaultObjective.trim() || undefined,
         aiFallbackMessage: fallbackMessage.trim() || undefined,
         aiMaxRepliesPerDay: maxRepliesPerDay.trim() ? Number(maxRepliesPerDay) : undefined,
       },
@@ -230,6 +233,24 @@ export function AiSettings() {
             placeholder="Qualquer instrução extra pro atendimento — ex.: sempre confirmar se já é cliente"
             className={inputClass}
           />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Objetivo padrão</span>
+          <textarea
+            value={defaultObjective}
+            onChange={(e) => {
+              setDefaultObjective(e.target.value);
+              markDirty();
+            }}
+            rows={2}
+            placeholder="O que a IA deve buscar por padrão em toda conversa — ex.: confirmar endereço e fechar pedido"
+            className={inputClass}
+          />
+          <span className="mt-1 block text-xs text-ink/40">
+            Vale pra todos os contatos automaticamente. Dá pra ajustar pontualmente por contato no
+            painel de cada conversa — o ajuste específico sempre tem prioridade sobre este aqui.
+          </span>
         </label>
 
         <label className="block">

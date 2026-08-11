@@ -49,6 +49,9 @@ export interface CurrentUser {
   aiPersona: string | null;
   aiBusinessInfo: AiBusinessInfo | null;
   aiExtraRules: string | null;
+  /** Account-wide default "Objetivo" — every conversation inherits this live unless it has its
+   * own override (ConversationDetail.aiObjective). */
+  aiDefaultObjective: string | null;
   aiFallbackMessage: string | null;
   aiMaxRepliesPerDay: number;
   aiCatalogItems: AiCatalogItem[];

@@ -48,6 +48,7 @@ export interface AiConfigInput {
   aiPersona?: string;
   aiBusinessInfo?: AiBusinessInfo;
   aiExtraRules?: string;
+  aiDefaultObjective?: string;
   aiFallbackMessage?: string;
   aiMaxRepliesPerDay?: number;
 }
