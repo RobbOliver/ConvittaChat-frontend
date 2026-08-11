@@ -20,6 +20,10 @@ export function InboxPage() {
   const deleteTab = useDeleteContactTab();
   const moveConversation = useMoveConversation();
   const syncingSessions = useSyncingSessions();
+  const syncingMessageCount = useMemo(
+    () => Array.from(syncingSessions.values()).reduce((sum, count) => sum + count, 0),
+    [syncingSessions],
+  );
 
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [mobileView, setMobileView] = useState<'list' | 'thread' | 'details'>('list');
@@ -83,9 +87,14 @@ export function InboxPage() {
     <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
       <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col md:flex md:flex-none`}>
         {syncingSessions.size > 0 && (
-          <p className="bg-signal/15 px-4 py-2 text-center text-xs font-medium text-signal">
-            Sincronizando conversas…
-          </p>
+          <div className="bg-signal/15 px-4 py-2 text-center">
+            <p className="text-xs font-medium text-signal">
+              Sincronizando conversas… {syncingMessageCount.toLocaleString('pt-BR')} mensagens carregadas até agora
+            </p>
+            <p className="text-[11px] text-signal/70">
+              Pode levar alguns minutos num histórico grande — mensagens novas continuam chegando normalmente enquanto isso
+            </p>
+          </div>
         )}
         <ConversationList
           inboxType={inboxType}

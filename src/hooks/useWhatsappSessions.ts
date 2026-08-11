@@ -41,8 +41,9 @@ export function useDisconnectWhatsappSession() {
   });
 }
 
-/** Hides the card from Home for good — distinct from disconnect, which keeps it reconnectable.
- * Conversation history for that number is untouched, only the connection-list card disappears. */
+/** Permanently deletes the number and everything tied to it (contacts, conversations, messages)
+ * — distinct from disconnect, which only frees the slot and keeps the number reconnectable with
+ * its history intact. Reconnecting after a remove starts from a clean slate. */
 export function useRemoveWhatsappSession() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -59,15 +60,20 @@ export function useReconnectWhatsappSession() {
   });
 }
 
-/** Session ids currently streaming in their WhatsApp history after a fresh pairing. */
-export function useSyncingSessions(): Set<string> {
-  const [syncing, setSyncing] = useState<Set<string>>(new Set());
+/**
+ * Session ids currently streaming in their WhatsApp history after a fresh pairing, mapped to how
+ * many messages have been processed so far. WhatsApp never tells Baileys the total upfront, so
+ * this is an honest running count, not a percentage — a session present in the map is syncing,
+ * one absent from it isn't (or finished).
+ */
+export function useSyncingSessions(): Map<string, number> {
+  const [syncing, setSyncing] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
-    const onSync = (payload: { sessionId: string; syncing: boolean }) => {
+    const onSync = (payload: { sessionId: string; syncing: boolean; messagesSynced?: number }) => {
       setSyncing((prev) => {
-        const next = new Set(prev);
-        if (payload.syncing) next.add(payload.sessionId);
+        const next = new Map(prev);
+        if (payload.syncing) next.set(payload.sessionId, payload.messagesSynced ?? next.get(payload.sessionId) ?? 0);
         else next.delete(payload.sessionId);
         return next;
       });
