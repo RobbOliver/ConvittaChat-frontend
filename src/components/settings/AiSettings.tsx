@@ -1,0 +1,281 @@
+import axios from 'axios';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useCurrentUser, useUpdateAiConfig } from '../../hooks/useCurrentUser';
+import { PRESS } from '../../lib/interactions';
+import { Toggle } from '../ui/Toggle';
+
+function splitList(value: string): string[] | undefined {
+  const items = value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : undefined;
+}
+
+function splitLines(value: string): string[] | undefined {
+  const lines = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return lines.length > 0 ? lines : undefined;
+}
+
+/** The AI "brain" configuration — entirely admin-authored. Nothing here assumes a specific kind
+ * of business: the admin describes their own business, tone and rules in free text, and the AI
+ * uses exactly that (plus the catalog from AiCatalogEditor) to talk to customers. */
+export function AiSettings() {
+  const { data: user } = useCurrentUser();
+  const updateAiConfig = useUpdateAiConfig();
+
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [businessName, setBusinessName] = useState('');
+  const [persona, setPersona] = useState('');
+  const [hours, setHours] = useState('');
+  const [serviceAreas, setServiceAreas] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState('');
+  const [minOrder, setMinOrder] = useState('');
+  const [policies, setPolicies] = useState('');
+  const [extraRules, setExtraRules] = useState('');
+  const [fallbackMessage, setFallbackMessage] = useState('');
+  const [maxRepliesPerDay, setMaxRepliesPerDay] = useState('200');
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    setAiEnabled(user.aiEnabled);
+    setBusinessName(user.aiBusinessName ?? '');
+    setPersona(user.aiPersona ?? '');
+    setHours(user.aiBusinessInfo?.hours ?? '');
+    setServiceAreas((user.aiBusinessInfo?.serviceAreas ?? []).join(', '));
+    setPaymentMethods((user.aiBusinessInfo?.paymentMethods ?? []).join(', '));
+    setMinOrder(
+      user.aiBusinessInfo?.minOrderCents != null ? String(user.aiBusinessInfo.minOrderCents / 100) : '',
+    );
+    setPolicies((user.aiBusinessInfo?.policies ?? []).join('\n'));
+    setExtraRules(user.aiExtraRules ?? '');
+    setFallbackMessage(user.aiFallbackMessage ?? '');
+    setMaxRepliesPerDay(String(user.aiMaxRepliesPerDay));
+  }, [user]);
+
+  function markDirty() {
+    setSaved(false);
+  }
+
+  function handleToggle(next: boolean) {
+    setAiEnabled(next);
+    setSaved(false);
+    updateAiConfig.mutate(
+      { aiEnabled: next },
+      { onError: () => setAiEnabled(!next) },
+    );
+  }
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSaved(false);
+    setError(null);
+
+    const minOrderCents = minOrder.trim() ? Math.round(Number(minOrder.replace(',', '.')) * 100) : undefined;
+
+    updateAiConfig.mutate(
+      {
+        aiBusinessName: businessName.trim() || undefined,
+        aiPersona: persona.trim() || undefined,
+        aiBusinessInfo: {
+          hours: hours.trim() || undefined,
+          serviceAreas: splitList(serviceAreas),
+          paymentMethods: splitList(paymentMethods),
+          minOrderCents,
+          policies: splitLines(policies),
+        },
+        aiExtraRules: extraRules.trim() || undefined,
+        aiFallbackMessage: fallbackMessage.trim() || undefined,
+        aiMaxRepliesPerDay: maxRepliesPerDay.trim() ? Number(maxRepliesPerDay) : undefined,
+      },
+      {
+        onSuccess: () => setSaved(true),
+        onError: (err) => {
+          const message = axios.isAxiosError(err)
+            ? (err.response?.data as { message?: string })?.message
+            : undefined;
+          setError(Array.isArray(message) ? message.join(', ') : (message ?? 'Não foi possível salvar. Tente novamente.'));
+        },
+      },
+    );
+  }
+
+  const inputClass =
+    'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20';
+  const labelClass = 'mb-1 block text-xs font-medium text-ink/50';
+
+  return (
+    <div className="max-w-xl space-y-6">
+      <div className="flex items-center justify-between rounded-lg border border-line bg-white px-3 py-3">
+        <div>
+          <p className="text-sm font-semibold text-ink">Resposta automática</p>
+          <p className="text-xs text-ink/50">
+            Quando ativado, a IA responde sozinha em conversas individuais (nunca em grupos). Pode ser
+            desligado por conversa também, no painel de contato.
+          </p>
+        </div>
+        <Toggle checked={aiEnabled} onChange={handleToggle} label="Ativar resposta automática" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <label className="block">
+          <span className={labelClass}>Nome do negócio</span>
+          <input
+            value={businessName}
+            onChange={(e) => {
+              setBusinessName(e.target.value);
+              markDirty();
+            }}
+            placeholder="Como a IA deve se apresentar (ex.: Studio Bela Vista)"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Tom e personalidade</span>
+          <textarea
+            value={persona}
+            onChange={(e) => {
+              setPersona(e.target.value);
+              markDirty();
+            }}
+            rows={2}
+            placeholder="Descreva como a IA deve falar — ex.: tom acolhedor, direto, sem emojis"
+            className={inputClass}
+          />
+        </label>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className={labelClass}>Horário de funcionamento</span>
+            <input
+              value={hours}
+              onChange={(e) => {
+                setHours(e.target.value);
+                markDirty();
+              }}
+              placeholder="Ex.: Seg a sáb, 9h às 19h"
+              className={inputClass}
+            />
+          </label>
+          <label className="block">
+            <span className={labelClass}>Valor mínimo (opcional)</span>
+            <input
+              value={minOrder}
+              onChange={(e) => {
+                setMinOrder(e.target.value);
+                markDirty();
+              }}
+              inputMode="decimal"
+              placeholder="Ex.: 25,00"
+              className={inputClass}
+            />
+          </label>
+        </div>
+
+        <label className="block">
+          <span className={labelClass}>Áreas atendidas (separadas por vírgula)</span>
+          <input
+            value={serviceAreas}
+            onChange={(e) => {
+              setServiceAreas(e.target.value);
+              markDirty();
+            }}
+            placeholder="Ex.: Centro, Zona Sul"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Formas de pagamento (separadas por vírgula)</span>
+          <input
+            value={paymentMethods}
+            onChange={(e) => {
+              setPaymentMethods(e.target.value);
+              markDirty();
+            }}
+            placeholder="Ex.: Pix, Cartão, Dinheiro"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Políticas (uma por linha)</span>
+          <textarea
+            value={policies}
+            onChange={(e) => {
+              setPolicies(e.target.value);
+              markDirty();
+            }}
+            rows={3}
+            placeholder={'Ex.: Cancelamento até 2h antes\nEntrega grátis acima de R$ 50'}
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Regras de negócio extras</span>
+          <textarea
+            value={extraRules}
+            onChange={(e) => {
+              setExtraRules(e.target.value);
+              markDirty();
+            }}
+            rows={2}
+            placeholder="Qualquer instrução extra pro atendimento — ex.: sempre confirmar se já é cliente"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Mensagem de recusa (quando a IA não pode ajudar)</span>
+          <input
+            value={fallbackMessage}
+            onChange={(e) => {
+              setFallbackMessage(e.target.value);
+              markDirty();
+            }}
+            placeholder="Padrão: recusa educada genérica"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block max-w-[220px]">
+          <span className={labelClass}>Limite de respostas automáticas por dia</span>
+          <input
+            value={maxRepliesPerDay}
+            onChange={(e) => {
+              setMaxRepliesPerDay(e.target.value.replace(/\D/g, ''));
+              markDirty();
+            }}
+            inputMode="numeric"
+            className={inputClass}
+          />
+        </label>
+
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            type="submit"
+            disabled={updateAiConfig.isPending}
+            className={`rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink hover:bg-signal/90 disabled:opacity-50 ${PRESS}`}
+          >
+            {updateAiConfig.isPending ? 'Salvando…' : 'Salvar'}
+          </button>
+          {saved && <span className="text-sm text-ink/50">Salvo.</span>}
+        </div>
+        {error && <p className="text-sm text-stage-lost">{error}</p>}
+      </form>
+
+      <p className="text-xs text-ink/40">
+        Proteções ativas por padrão, não configuráveis: bloqueio de tentativas de manipulação do
+        assistente, verificação de preços e itens contra o catálogo cadastrado, e isolamento entre a
+        mensagem do cliente e as instruções da IA.
+      </p>
+    </div>
+  );
+}

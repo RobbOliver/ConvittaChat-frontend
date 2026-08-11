@@ -237,10 +237,19 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
                       <p className="whitespace-pre-wrap">{formatMessageText(message.content)}</p>
                     )}
                     <p
-                      className={`font-mono text-[10px] ${message.content ? 'mt-1' : ''} ${
+                      className={`flex items-center gap-1.5 font-mono text-[10px] ${message.content ? 'mt-1' : ''} ${
                         isOutbound ? 'text-white/45' : 'text-ink/35'
                       }`}
                     >
+                      {message.isAiGenerated && (
+                        <span
+                          className={`rounded-full px-1.5 py-px font-sans text-[9px] font-semibold uppercase tracking-wide ${
+                            isOutbound ? 'bg-white/15 text-white/70' : 'bg-mist text-ink/40'
+                          }`}
+                        >
+                          IA
+                        </span>
+                      )}
                       {formatTime(message.createdAt)}
                     </p>
                   </div>

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { getToken } from '../lib/authToken';
-import type { CurrentUser, InboxType, PixKeyType } from '../types';
+import type { AiBusinessInfo, CurrentUser, InboxType, PixKeyType } from '../types';
 
 export const CURRENT_USER_KEY = ['auth', 'me'];
 
@@ -36,6 +36,27 @@ export function useUpdatePixConfig() {
 
   return useMutation({
     mutationFn: async (input: PixConfigInput) => (await api.patch<CurrentUser>('/auth/pix', input)).data,
+    onSuccess: (user) => {
+      queryClient.setQueryData<CurrentUser>(CURRENT_USER_KEY, user);
+    },
+  });
+}
+
+export interface AiConfigInput {
+  aiEnabled?: boolean;
+  aiBusinessName?: string;
+  aiPersona?: string;
+  aiBusinessInfo?: AiBusinessInfo;
+  aiExtraRules?: string;
+  aiFallbackMessage?: string;
+  aiMaxRepliesPerDay?: number;
+}
+
+export function useUpdateAiConfig() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: AiConfigInput) => (await api.patch<CurrentUser>('/auth/ai', input)).data,
     onSuccess: (user) => {
       queryClient.setQueryData<CurrentUser>(CURRENT_USER_KEY, user);
     },

@@ -3,15 +3,17 @@ import { useContactFieldDefinitions } from '../../hooks/useContactFieldDefinitio
 import { useClearContactFieldValue, useContactFields, useSetContactFieldValue } from '../../hooks/useContactFields';
 import { contactDisplayName } from '../../lib/format';
 import { PRESS_SM } from '../../lib/interactions';
-import type { Contact, ContactFieldDefinition } from '../../types';
+import type { ContactFieldDefinition, ConversationDetail } from '../../types';
+import { AiConversationPanel } from './AiConversationPanel';
 import { Avatar } from './Avatar';
 
 interface Props {
-  contact: Contact;
+  conversation: ConversationDetail;
   onClose: () => void;
 }
 
-export function ContactDetailsPanel({ contact, onClose }: Props) {
+export function ContactDetailsPanel({ conversation, onClose }: Props) {
+  const contact = conversation.contact;
   const name = contactDisplayName(contact);
   const { data: definitions, isLoading: isLoadingDefinitions } = useContactFieldDefinitions();
   const { data: fields, isLoading: isLoadingFields } = useContactFields(contact.id);
@@ -41,29 +43,33 @@ export function ContactDetailsPanel({ contact, onClose }: Props) {
         {!contact.isGroup && <p className="font-mono text-xs text-ink/40">{contact.phoneNumber}</p>}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <p className="pb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/35">Campos personalizados</p>
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-4">
+          <p className="pb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/35">Campos personalizados</p>
 
-        {isLoading && <p className="py-2 text-sm text-ink/40">Carregando…</p>}
+          {isLoading && <p className="py-2 text-sm text-ink/40">Carregando…</p>}
 
-        {!isLoading && definitions && definitions.length === 0 && (
-          <p className="py-2 text-sm text-ink/40">
-            Nenhum campo configurado ainda. Adicione campos nas Configurações do Inbox para Vendas.
-          </p>
-        )}
+          {!isLoading && definitions && definitions.length === 0 && (
+            <p className="py-2 text-sm text-ink/40">
+              Nenhum campo configurado ainda. Adicione campos nas Configurações do Inbox para Vendas.
+            </p>
+          )}
 
-        {!isLoading && definitions && definitions.length > 0 && (
-          <ul className="space-y-2">
-            {definitions.map((definition) => (
-              <FieldValueRow
-                key={definition.id}
-                contactId={contact.id}
-                definition={definition}
-                value={valueByDefinitionId.get(definition.id) ?? ''}
-              />
-            ))}
-          </ul>
-        )}
+          {!isLoading && definitions && definitions.length > 0 && (
+            <ul className="space-y-2">
+              {definitions.map((definition) => (
+                <FieldValueRow
+                  key={definition.id}
+                  contactId={contact.id}
+                  definition={definition}
+                  value={valueByDefinitionId.get(definition.id) ?? ''}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {!contact.isGroup && <AiConversationPanel conversation={conversation} />}
       </div>
     </aside>
   );

@@ -130,7 +130,7 @@ export function InboxPage() {
       </div>
       {inboxType === 'SALES' && detailsOpen && selectedConversation && (
         <div className={`${mobileView === 'details' ? 'flex' : 'hidden'} min-h-0 md:flex`}>
-          <ContactDetailsPanel contact={selectedConversation.contact} onClose={closeDetails} />
+          <ContactDetailsPanel conversation={selectedConversation} onClose={closeDetails} />
         </div>
       )}
     </div>

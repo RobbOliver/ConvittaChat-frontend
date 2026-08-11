@@ -15,6 +15,26 @@ export type InboxType = 'SECTOR' | 'SALES';
 
 export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM';
 
+/** Free-shape business info the admin fills in for the AI — every field optional, no field
+ * assumes a specific kind of business. */
+export interface AiBusinessInfo {
+  hours?: string;
+  serviceAreas?: string[];
+  paymentMethods?: string[];
+  minOrderCents?: number;
+  policies?: string[];
+}
+
+/** One item in the admin's AI catalog — generic on purpose (product, service, or menu item). */
+export interface AiCatalogItem {
+  id: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  available: boolean;
+  order: number;
+}
+
 export interface CurrentUser {
   id: string;
   name: string;
@@ -24,6 +44,14 @@ export interface CurrentUser {
   pixKeyType: PixKeyType | null;
   pixMerchantName: string | null;
   pixMerchantCity: string | null;
+  aiEnabled: boolean;
+  aiBusinessName: string | null;
+  aiPersona: string | null;
+  aiBusinessInfo: AiBusinessInfo | null;
+  aiExtraRules: string | null;
+  aiFallbackMessage: string | null;
+  aiMaxRepliesPerDay: number;
+  aiCatalogItems: AiCatalogItem[];
 }
 
 export interface Contact {
@@ -33,6 +61,9 @@ export interface Contact {
   phoneNumber: string;
   avatarUrl?: string | null;
   isGroup: boolean;
+  /** Long-term facts the AI has learned about this person — plain text, one fact per line, only
+   * ever grown/merged in code (see backend AiAutoReplyService), never edited by hand. */
+  aiLongTermMemory: string | null;
 }
 
 /** A synced WhatsApp contact/group, whether or not a conversation with them has started yet. */
@@ -63,6 +94,8 @@ export interface Message {
   sender?: Contact | null;
   /** Only populated on the conversation-detail response — absent (not empty) elsewhere. */
   reactions?: MessageReaction[];
+  /** True only for outbound messages the AI auto-reply sent unattended. */
+  isAiGenerated: boolean;
   createdAt: string;
 }
 
@@ -84,6 +117,11 @@ export interface ConversationSummary {
   /** Inbound messages received since this conversation was last opened. Reset to 0 by fetching
    * its detail (GET /conversations/:id) — see useConversation. */
   unreadCount: number;
+  /** Per-conversation override of the account's global AI toggle — both must be true for the AI
+   * to auto-reply here. */
+  aiEnabled: boolean;
+  /** Free-text note (admin- or AI-maintained) of what's still needed to close this deal. */
+  aiObjective: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,6 +135,11 @@ export interface ConversationDetail {
   messages: Message[];
   tabId: string | null;
   unreadCount: number;
+  aiEnabled: boolean;
+  aiObjective: string | null;
+  /** The same recent-message window sent to the AI as context, formatted as readable text —
+   * literally what the AI is currently seeing, not a separately-generated summary. */
+  aiContextWindow: string;
   createdAt: string;
   updatedAt: string;
 }

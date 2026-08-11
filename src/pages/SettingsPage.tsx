@@ -1,4 +1,6 @@
 import { SidebarNav } from '../components/layout/SidebarNav';
+import { AiCatalogEditor } from '../components/settings/AiCatalogEditor';
+import { AiSettings } from '../components/settings/AiSettings';
 import { PixSettings } from '../components/settings/PixSettings';
 import { SalesFieldDefinitions } from '../components/settings/SalesFieldDefinitions';
 import { useCurrentUser, useUpdateInboxType } from '../hooks/useCurrentUser';
@@ -96,6 +98,24 @@ export function SettingsPage() {
                 </p>
                 <div className="mt-4">
                   <PixSettings />
+                </div>
+
+                <h3 className="mt-8 font-display text-base font-semibold text-ink">Inteligência Artificial</h3>
+                <p className="mt-1 text-sm text-ink/50">
+                  Configure como a IA se comporta ao responder automaticamente pelo WhatsApp — persona,
+                  regras e segurança valem para qualquer tipo de negócio.
+                </p>
+                <div className="mt-4">
+                  <AiSettings />
+                </div>
+
+                <h4 className="mt-6 font-display text-sm font-semibold text-ink">Catálogo</h4>
+                <p className="mt-1 text-sm text-ink/50">
+                  Produtos, serviços ou itens que a IA pode citar e vender — ela nunca menciona preço
+                  ou item fora desta lista.
+                </p>
+                <div className="mt-4">
+                  <AiCatalogEditor />
                 </div>
               </>
             ) : (

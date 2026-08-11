@@ -29,11 +29,23 @@ export function useConversation(id: string | undefined) {
         queryClient.invalidateQueries({ queryKey: conversationKey(id) });
       }
     };
+    // Fired after the AI auto-reply extracts new fields/objective/long-term facts — refreshes the
+    // contact panel's AI blocks live if it's open on this conversation.
+    const onAiMemoryUpdated = (payload: { conversationId: string }) => {
+      if (payload.conversationId === id) {
+        queryClient.invalidateQueries({ queryKey: conversationKey(id) });
+        // Extracted fields land in ContactField values, keyed by contactId, not conversationId —
+        // broad-invalidate every contact-fields query rather than resolving which contact this is.
+        queryClient.invalidateQueries({ queryKey: ['contact-fields'] });
+      }
+    };
     socket.on('conversation:new-message', onMessage);
     socket.on('message:reaction', onReaction);
+    socket.on('conversation:ai-memory-updated', onAiMemoryUpdated);
     return () => {
       socket.off('conversation:new-message', onMessage);
       socket.off('message:reaction', onReaction);
+      socket.off('conversation:ai-memory-updated', onAiMemoryUpdated);
     };
   }, [id, queryClient]);
 
