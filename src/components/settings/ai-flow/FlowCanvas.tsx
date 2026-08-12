@@ -22,13 +22,14 @@ import { PRESS_SM } from '../../../lib/interactions';
 import type { AiFlowNodeType } from '../../../types';
 import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
-import { AiMessageNode, ConditionNode, EndNode, TriggerNode, type FlowNodeData } from './FlowNodes';
+import { AiMessageNode, ConditionNode, EndNode, TextNode, TriggerNode, type FlowNodeData } from './FlowNodes';
 import { NodeConfigModal, type EditableNode } from './NodeConfigModal';
 
 const NODE_TYPES: NodeTypes = {
   TRIGGER: TriggerNode,
   AI_MESSAGE: AiMessageNode,
   CONDITION: ConditionNode,
+  TEXT: TextNode,
   END: EndNode,
 };
 
@@ -36,6 +37,7 @@ const LEGEND: { type: AiFlowNodeType; label: string; dot: string }[] = [
   { type: 'TRIGGER', label: 'Início', dot: 'bg-stage-new' },
   { type: 'AI_MESSAGE', label: 'Mensagem de IA', dot: 'bg-signal' },
   { type: 'CONDITION', label: 'Condição', dot: 'bg-ink/40' },
+  { type: 'TEXT', label: 'Texto fixo', dot: 'bg-stage-won' },
   { type: 'END', label: 'Fim', dot: 'bg-ink' },
 ];
 
@@ -197,9 +199,14 @@ export function FlowCanvas() {
     setIsDirty(true);
   }
 
-  function handleAddNode(type: 'AI_MESSAGE' | 'CONDITION' | 'END') {
+  function handleAddNode(type: 'AI_MESSAGE' | 'CONDITION' | 'TEXT' | 'END') {
     const maxX = nodes.reduce((max, n) => Math.max(max, n.position.x), 0);
-    const label = { AI_MESSAGE: 'Nova mensagem', CONDITION: 'Nova condição', END: 'Novo fim' }[type];
+    const label = {
+      AI_MESSAGE: 'Nova mensagem',
+      CONDITION: 'Nova condição',
+      TEXT: 'Novo texto',
+      END: 'Novo fim',
+    }[type];
     const newNode: Node<FlowNodeData> = {
       id: makeId(),
       type,
@@ -275,6 +282,13 @@ export function FlowCanvas() {
           className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
         >
           + Condição
+        </button>
+        <button
+          type="button"
+          onClick={() => handleAddNode('TEXT')}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+        >
+          + Texto
         </button>
         <button
           type="button"

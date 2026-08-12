@@ -14,6 +14,7 @@ const TYPE_LABEL: Record<AiFlowNodeType, string> = {
   TRIGGER: 'Início',
   AI_MESSAGE: 'Mensagem de IA',
   CONDITION: 'Condição',
+  TEXT: 'Texto fixo',
   END: 'Fim',
 };
 
@@ -55,7 +56,9 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
   const { data: fieldDefinitions } = useContactFieldDefinitions();
   const [label, setLabel] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [endMessage, setEndMessage] = useState('');
+  // Shared between END's (optional) closing message and TEXT's (the whole point of the node)
+  // fixed message — the two are never active for the same node instance, so one field is enough.
+  const [message, setMessage] = useState('');
   const [rules, setRules] = useState<ConditionRule[]>([]);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
     setLabel(node.label);
     const config = (node.config ?? {}) as { instructions?: string; message?: string; rules?: ConditionRule[] };
     setInstructions(config.instructions ?? '');
-    setEndMessage(config.message ?? '');
+    setMessage(config.message ?? '');
     setRules(config.rules ?? []);
   }, [node]);
 
@@ -77,8 +80,8 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
     const config =
       node.type === 'AI_MESSAGE'
         ? { instructions: instructions.trim() || undefined }
-        : node.type === 'END'
-          ? { message: endMessage.trim() || undefined }
+        : node.type === 'END' || node.type === 'TEXT'
+          ? { message: message.trim() || undefined }
           : node.type === 'CONDITION'
             ? { rules: rules.filter((r) => r.targetEdgeLabel.trim()) }
             : {};
@@ -132,11 +135,28 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
             Mensagem de encerramento (opcional)
             <input
               type="text"
-              value={endMessage}
-              onChange={(e) => setEndMessage(e.target.value)}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               placeholder="Deixe em branco pra não enviar nada extra ao chegar aqui"
               className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-signal"
             />
+          </label>
+        )}
+
+        {node.type === 'TEXT' && (
+          <label className="mt-4 block text-sm font-medium text-ink/70">
+            Texto enviado
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              placeholder="Ex.: Segue nosso cardápio completo: convitta.com/cardapio"
+              className="mt-1 w-full resize-none rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+            />
+            <span className="mt-1 block text-xs text-ink/40">
+              Enviado exatamente como escrito, sem passar pela IA — depois segue direto pro próximo
+              passo ligado a este, sem esperar resposta do cliente.
+            </span>
           </label>
         )}
 

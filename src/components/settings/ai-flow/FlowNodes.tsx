@@ -55,6 +55,9 @@ export function AiMessageNode(props: NodeProps) {
 export function ConditionNode(props: NodeProps) {
   return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
 }
+export function TextNode(props: NodeProps) {
+  return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
+}
 export function EndNode(props: NodeProps) {
   return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
 }

@@ -66,7 +66,7 @@ function StepBadge({ type, label }: { type: AiFlowNodeType | null; label: string
 // back to the known union for the shared style map, falling back to CONDITION's neutral styling for
 // anything unrecognized rather than crashing on a stale/malformed trace entry.
 function asNodeType(value: string): AiFlowNodeType {
-  return value === 'TRIGGER' || value === 'AI_MESSAGE' || value === 'CONDITION' || value === 'END'
+  return value === 'TRIGGER' || value === 'AI_MESSAGE' || value === 'CONDITION' || value === 'TEXT' || value === 'END'
     ? value
     : 'CONDITION';
 }

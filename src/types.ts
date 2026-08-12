@@ -67,7 +67,7 @@ export interface CurrentUser {
   aiCatalogItems: AiCatalogItem[];
 }
 
-export type AiFlowNodeType = 'TRIGGER' | 'AI_MESSAGE' | 'CONDITION' | 'END';
+export type AiFlowNodeType = 'TRIGGER' | 'AI_MESSAGE' | 'CONDITION' | 'TEXT' | 'END';
 
 export type ConditionOperator = 'isSet' | 'isEmpty' | 'equals' | 'notEquals';
 

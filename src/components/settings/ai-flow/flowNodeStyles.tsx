@@ -40,6 +40,17 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
       </svg>
     ),
   },
+  TEXT: {
+    border: 'border-stage-won',
+    bg: 'bg-stage-won-soft',
+    text: 'text-stage-won',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
+        <rect x="3" y="4" width="14" height="12" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M5.8 7.5h8.4M5.8 10h8.4M5.8 12.5h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
   END: {
     border: 'border-ink',
     bg: 'bg-ink',
@@ -56,5 +67,6 @@ export const NODE_TYPE_LABEL: Record<AiFlowNodeType, string> = {
   TRIGGER: 'Início',
   AI_MESSAGE: 'Mensagem de IA',
   CONDITION: 'Condição',
+  TEXT: 'Texto fixo',
   END: 'Fim',
 };
