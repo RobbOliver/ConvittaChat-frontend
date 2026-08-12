@@ -6,6 +6,7 @@ import {
   useEdgesState,
   useNodesState,
   type Edge,
+  type EdgeMouseHandler,
   type Node,
   type NodeMouseHandler,
   type NodeTypes,
@@ -19,6 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAiFlow, useUpdateAiFlow } from '../../../hooks/useAiFlow';
 import { PRESS_SM } from '../../../lib/interactions';
 import type { AiFlowNodeType } from '../../../types';
+import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
 import { AiMessageNode, ConditionNode, EndNode, TriggerNode, type FlowNodeData } from './FlowNodes';
 import { NodeConfigModal, type EditableNode } from './NodeConfigModal';
@@ -50,11 +52,11 @@ function makeId(): string {
 }
 
 /**
- * Editable canvas for the account's flow graph (Fase 3): drag nodes, add an AI_MESSAGE/END node,
+ * Editable canvas for the account's flow graph: drag nodes, add an AI_MESSAGE/CONDITION/END node,
  * remove a node (the "×" button or the delete key — never on TRIGGER, always exactly one), connect
- * two nodes, double-click a node to edit its label/config. Deliberately linear for now — a node
- * can have at most one outgoing connection here; branching (multiple labeled edges, a fallback
- * edge, the condition-rule builder) is Fase 4. Nothing is sent to the server until "Salvar fluxo".
+ * two nodes (any number of outgoing connections — see EdgeConfigModal for labeling one as a route
+ * option or as the fallback), double-click a node to edit its label/config (CONDITION gets a rule
+ * builder), double-click an edge to label it. Nothing is sent to the server until "Salvar fluxo".
  */
 export function FlowCanvas() {
   const { data: flow, isLoading, isError } = useAiFlow();
@@ -63,6 +65,7 @@ export function FlowCanvas() {
   const [nodes, setNodes, applyNodesChange] = useNodesState<Node<FlowNodeData>>([]);
   const [edges, setEdges, applyEdgesChange] = useEdgesState<Edge>([]);
   const [editingNode, setEditingNode] = useState<EditableNode | null>(null);
+  const [editingEdge, setEditingEdge] = useState<EditableEdge | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [seededFlowId, setSeededFlowId] = useState<string | null>(null);
@@ -126,8 +129,8 @@ export function FlowCanvas() {
   };
 
   const onConnect: OnConnect = (connection) => {
-    if (edges.some((e) => e.source === connection.source)) {
-      showNotice('Por enquanto cada passo só pode seguir pra um próximo — ramificações chegam numa próxima etapa.');
+    if (edges.some((e) => e.source === connection.source && e.target === connection.target)) {
+      showNotice('Esses dois passos já estão ligados.');
       return;
     }
     setEdges((eds) =>
@@ -140,10 +143,51 @@ export function FlowCanvas() {
     setEditingNode({ id: node.id, type: node.data.nodeType, label: node.data.label, config: node.data.config });
   };
 
+  const onEdgeDoubleClick: EdgeMouseHandler<Edge> = (_event, edge) => {
+    const data = edge.data as EdgeData | undefined;
+    const sourceLabel = nodes.find((n) => n.id === edge.source)?.data.label ?? '?';
+    const targetLabel = nodes.find((n) => n.id === edge.target)?.data.label ?? '?';
+    setEditingEdge({
+      id: edge.id,
+      routeLabel: data?.routeLabel ?? null,
+      isFallback: data?.isFallback ?? false,
+      sourceLabel,
+      targetLabel,
+    });
+  };
+
   function handleNodeSave(nodeId: string, patch: { label: string; config: unknown }) {
     setNodes((nds) =>
       nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, label: patch.label, config: patch.config } } : n)),
     );
+    setIsDirty(true);
+  }
+
+  function handleEdgeSave(edgeId: string, patch: { routeLabel: string | null; isFallback: boolean }) {
+    setEdges((eds) => {
+      const target = eds.find((e) => e.id === edgeId);
+      const sourceId = target?.source;
+      return eds.map((e) => {
+        if (e.id === edgeId) {
+          return {
+            ...e,
+            label: patch.routeLabel ?? undefined,
+            style: patch.isFallback ? { strokeDasharray: '4 4' } : undefined,
+            data: { routeLabel: patch.routeLabel, isFallback: patch.isFallback } satisfies EdgeData,
+          };
+        }
+        // At most one fallback per source node — marking this one as fallback silently un-marks
+        // any sibling, so the admin never has to notice/fix it manually (and the backend would
+        // otherwise reject the save outright — see flow.service.ts's saveGraph).
+        if (patch.isFallback && e.source === sourceId) {
+          const siblingData = e.data as EdgeData | undefined;
+          if (siblingData?.isFallback) {
+            return { ...e, style: undefined, data: { ...siblingData, isFallback: false } satisfies EdgeData };
+          }
+        }
+        return e;
+      });
+    });
     setIsDirty(true);
   }
 
@@ -153,17 +197,14 @@ export function FlowCanvas() {
     setIsDirty(true);
   }
 
-  function handleAddNode(type: 'AI_MESSAGE' | 'END') {
+  function handleAddNode(type: 'AI_MESSAGE' | 'CONDITION' | 'END') {
     const maxX = nodes.reduce((max, n) => Math.max(max, n.position.x), 0);
+    const label = { AI_MESSAGE: 'Nova mensagem', CONDITION: 'Nova condição', END: 'Novo fim' }[type];
     const newNode: Node<FlowNodeData> = {
       id: makeId(),
       type,
       position: { x: maxX + 260, y: 0 },
-      data: {
-        label: type === 'AI_MESSAGE' ? 'Nova mensagem' : 'Novo fim',
-        nodeType: type,
-        config: {},
-      },
+      data: { label, nodeType: type, config: type === 'CONDITION' ? { rules: [] } : {} },
     };
     setNodes((nds) => [...nds, newNode]);
     setIsDirty(true);
@@ -230,6 +271,13 @@ export function FlowCanvas() {
         </button>
         <button
           type="button"
+          onClick={() => handleAddNode('CONDITION')}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+        >
+          + Condição
+        </button>
+        <button
+          type="button"
           onClick={() => handleAddNode('END')}
           className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
         >
@@ -250,6 +298,15 @@ export function FlowCanvas() {
       </div>
 
       {notice && <p className="mt-2 text-xs text-signal">{notice}</p>}
+      {flow.warnings.length > 0 && (
+        <div className="mt-2 space-y-1 rounded-lg bg-signal/10 px-3 py-2">
+          {flow.warnings.map((w) => (
+            <p key={w} className="text-xs text-signal">
+              {w}
+            </p>
+          ))}
+        </div>
+      )}
 
       <div className="mt-3 h-[420px] overflow-hidden rounded-xl border border-line bg-mist/40">
         <ReactFlow
@@ -260,6 +317,7 @@ export function FlowCanvas() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeDoubleClick={onNodeDoubleClick}
+          onEdgeDoubleClick={onEdgeDoubleClick}
           onInit={(instance) => {
             reactFlowInstance.current = instance;
           }}
@@ -284,7 +342,19 @@ export function FlowCanvas() {
         ))}
       </div>
 
-      <NodeConfigModal node={editingNode} onClose={() => setEditingNode(null)} onSave={handleNodeSave} />
+      <NodeConfigModal
+        node={editingNode}
+        outgoingEdgeLabels={
+          editingNode
+            ? edges
+                .filter((e) => e.source === editingNode.id && (e.data as EdgeData | undefined)?.routeLabel)
+                .map((e) => (e.data as EdgeData).routeLabel as string)
+            : []
+        }
+        onClose={() => setEditingNode(null)}
+        onSave={handleNodeSave}
+      />
+      <EdgeConfigModal edge={editingEdge} onClose={() => setEditingEdge(null)} onSave={handleEdgeSave} />
     </div>
   );
 }

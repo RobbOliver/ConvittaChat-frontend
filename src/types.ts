@@ -69,6 +69,19 @@ export interface CurrentUser {
 
 export type AiFlowNodeType = 'TRIGGER' | 'AI_MESSAGE' | 'CONDITION' | 'END';
 
+export type ConditionOperator = 'isSet' | 'isEmpty' | 'equals' | 'notEquals';
+
+/** One rule inside a CONDITION node's config — evaluated in array order, first match wins. `field`
+ * is either a ContactFieldDefinition key or one of the two reserved, code-computed signals
+ * ("horarioValido", "neighborhoodConfirmed") the model itself is never allowed to decide on its
+ * own. `targetEdgeLabel` must match an outgoing AiFlowEdge.routeLabel from the same node. */
+export interface ConditionRule {
+  field: string;
+  operator: ConditionOperator;
+  value?: string;
+  targetEdgeLabel: string;
+}
+
 export interface AiFlowNode {
   id: string;
   type: AiFlowNodeType;
@@ -93,6 +106,9 @@ export interface AiFlow {
   name: string;
   nodes: AiFlowNode[];
   edges: AiFlowEdge[];
+  /** Non-blocking configuration gaps (e.g. a CONDITION step with no fallback path) — never
+   * prevents the flow from loading or saving, just worth the admin's attention. */
+  warnings: string[];
 }
 
 export interface Contact {
