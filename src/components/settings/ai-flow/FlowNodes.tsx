@@ -5,6 +5,9 @@ import type { AiFlowNodeType } from '../../../types';
 export interface FlowNodeData {
   label: string;
   nodeType: AiFlowNodeType;
+  /** Undefined in Fase 2's read-only preview; set in Fase 3's editable canvas. TRIGGER never gets
+   * one passed in (it's the one node type that can't be removed — exactly one must always exist). */
+  onDelete?: () => void;
   [key: string]: unknown;
 }
 
@@ -47,9 +50,24 @@ function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
   const isEnd = data.nodeType === 'END';
   return (
     <div
-      className={`w-56 rounded-xl border-2 px-4 py-3 shadow-sm ${style.border} ${style.bg}`}
+      className={`group relative w-56 cursor-pointer rounded-xl border-2 px-4 py-3 shadow-sm ${style.border} ${style.bg}`}
     >
       {data.nodeType !== 'TRIGGER' && <Handle type="target" position={Position.Left} className="!bg-ink/40" />}
+      {data.onDelete && (
+        <button
+          type="button"
+          title="Remover passo"
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onDelete?.();
+          }}
+          className={`nodrag nopan absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full border shadow-sm group-hover:flex ${
+            isEnd ? 'border-line bg-paper text-ink' : 'border-line bg-paper text-ink/60'
+          } hover:!bg-stage-lost-soft hover:text-stage-lost`}
+        >
+          <CloseIcon />
+        </button>
+      )}
       <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wide ${style.text}`}>
         {style.icon}
         {NODE_TYPE_LABEL[data.nodeType]}
@@ -111,6 +129,14 @@ function FlagIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
       <path d="M5 3v14M5 4h9l-2.5 3L14 10H5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" aria-hidden>
+      <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
