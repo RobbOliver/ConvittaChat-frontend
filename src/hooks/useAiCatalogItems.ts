@@ -15,6 +15,7 @@ export function useAiCatalogItems() {
 export interface CreateAiCatalogItemInput {
   name: string;
   description?: string;
+  category?: string;
   priceCents: number;
   available?: boolean;
 }
@@ -32,6 +33,7 @@ export interface UpdateAiCatalogItemInput {
   id: string;
   name?: string;
   description?: string;
+  category?: string;
   priceCents?: number;
   available?: boolean;
 }

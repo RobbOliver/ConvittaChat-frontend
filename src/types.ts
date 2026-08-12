@@ -39,6 +39,10 @@ export interface AiCatalogItem {
   id: string;
   name: string;
   description: string | null;
+  /** Free-text grouping (e.g. "Bebidas", "Marmitas") — lets the admin organize the catalog and
+   * reference a group by name in a flow step's instructions, e.g. "ofereça algo da categoria
+   * Bebidas se o pedido não tiver nenhuma". */
+  category: string | null;
   priceCents: number;
   available: boolean;
   order: number;

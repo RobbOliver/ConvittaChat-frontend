@@ -19,6 +19,35 @@ function parseReaisToCents(value: string): number | null {
   return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) : null;
 }
 
+interface CatalogGroup {
+  category: string | null;
+  items: AiCatalogItem[];
+}
+
+/** Groups items by category, preserving each category's first-appearance order in the underlying
+ * list — so the admin's own ordering still controls what shows up first. When nobody has set a
+ * category yet, returns everything as a single ungrouped list (no "Sem categoria" header noise
+ * for accounts that don't use this at all). */
+function groupByCategory(items: AiCatalogItem[]): CatalogGroup[] {
+  if (!items.some((item) => item.category)) return [{ category: null, items }];
+
+  const order: string[] = [];
+  const byKey = new Map<string, AiCatalogItem[]>();
+  const UNCATEGORIZED = '\0uncategorized';
+  for (const item of items) {
+    const key = item.category ?? UNCATEGORIZED;
+    if (!byKey.has(key)) {
+      order.push(key);
+      byKey.set(key, []);
+    }
+    byKey.get(key)!.push(item);
+  }
+  return order.map((key) => ({
+    category: key === UNCATEGORIZED ? null : key,
+    items: byKey.get(key)!,
+  }));
+}
+
 /** The admin's catalog of what they sell — generic on purpose (product, service, or menu item),
  * so it fits any kind of business. Sent to the AI on every auto-reply, and used to check that the
  * AI never mentions a price or item that doesn't actually exist (see backend outputValidator). */
@@ -28,8 +57,11 @@ export function AiCatalogEditor() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const existingCategories = [...new Set((items ?? []).map((i) => i.category).filter((c): c is string => !!c))];
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -39,17 +71,25 @@ export function AiCatalogEditor() {
 
     setError(null);
     createItem.mutate(
-      { name: trimmedName, description: description.trim() || undefined, priceCents },
+      {
+        name: trimmedName,
+        description: description.trim() || undefined,
+        category: category.trim() || undefined,
+        priceCents,
+      },
       {
         onSuccess: () => {
           setName('');
           setDescription('');
+          setCategory('');
           setPrice('');
         },
         onError: () => setError('Não foi possível adicionar esse item.'),
       },
     );
   }
+
+  const groups = groupByCategory(items ?? []);
 
   return (
     <div>
@@ -60,11 +100,22 @@ export function AiCatalogEditor() {
       )}
 
       {!isLoading && items && items.length > 0 && (
-        <ul className="mb-4 space-y-2">
-          {items.map((item) => (
-            <ItemRow key={item.id} item={item} />
+        <div className="mb-4 space-y-4">
+          {groups.map((group) => (
+            <div key={group.category ?? '__none__'}>
+              {group.category !== null || groups.length > 1 ? (
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/35">
+                  {group.category ?? 'Sem categoria'}
+                </p>
+              ) : null}
+              <ul className="space-y-2">
+                {group.items.map((item) => (
+                  <ItemRow key={item.id} item={item} />
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
@@ -86,6 +137,16 @@ export function AiCatalogEditor() {
             className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
           />
         </label>
+        <label className="min-w-[140px] flex-1">
+          <span className="mb-1 block text-xs font-medium text-ink/50">Categoria (opcional)</span>
+          <input
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ex.: Bebidas"
+            list="catalog-categories"
+            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+          />
+        </label>
         <label className="w-28">
           <span className="mb-1 block text-xs font-medium text-ink/50">Preço (R$)</span>
           <input
@@ -104,7 +165,17 @@ export function AiCatalogEditor() {
           {createItem.isPending ? 'Adicionando…' : 'Adicionar'}
         </button>
       </form>
+      <datalist id="catalog-categories">
+        {existingCategories.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
       {error && <p className="mt-2 text-sm text-stage-lost">{error}</p>}
+      <p className="mt-2 text-xs text-ink/40">
+        Categoria é opcional — usa pra agrupar itens (ex.: "Bebidas", "Marmitas") e a IA passa a
+        enxergar essa organização, podendo ser referenciada nas instruções de um passo do fluxo
+        (ex.: "ofereça algo da categoria Bebidas se o pedido não tiver nenhuma").
+      </p>
     </div>
   );
 }
@@ -112,6 +183,7 @@ export function AiCatalogEditor() {
 function ItemRow({ item }: { item: AiCatalogItem }) {
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description ?? '');
+  const [category, setCategory] = useState(item.category ?? '');
   const [price, setPrice] = useState(formatReais(item.priceCents));
   const updateItem = useUpdateAiCatalogItem();
   const deleteItem = useDeleteAiCatalogItem();
@@ -119,23 +191,37 @@ function ItemRow({ item }: { item: AiCatalogItem }) {
   useEffect(() => {
     setName(item.name);
     setDescription(item.description ?? '');
+    setCategory(item.category ?? '');
     setPrice(formatReais(item.priceCents));
-  }, [item.name, item.description, item.priceCents]);
+  }, [item.name, item.description, item.category, item.priceCents]);
 
   function saveIfChanged() {
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
+    const trimmedCategory = category.trim();
     const priceCents = parseReaisToCents(price);
     if (!trimmedName || priceCents === null) {
       setName(item.name);
       setDescription(item.description ?? '');
+      setCategory(item.category ?? '');
       setPrice(formatReais(item.priceCents));
       return;
     }
-    if (trimmedName === item.name && trimmedDescription === (item.description ?? '') && priceCents === item.priceCents) {
+    if (
+      trimmedName === item.name &&
+      trimmedDescription === (item.description ?? '') &&
+      trimmedCategory === (item.category ?? '') &&
+      priceCents === item.priceCents
+    ) {
       return;
     }
-    updateItem.mutate({ id: item.id, name: trimmedName, description: trimmedDescription, priceCents });
+    updateItem.mutate({
+      id: item.id,
+      name: trimmedName,
+      description: trimmedDescription,
+      category: trimmedCategory,
+      priceCents,
+    });
   }
 
   return (
@@ -152,6 +238,14 @@ function ItemRow({ item }: { item: AiCatalogItem }) {
         onBlur={saveIfChanged}
         placeholder="Descrição"
         className="min-w-[120px] flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1"
+      />
+      <input
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        onBlur={saveIfChanged}
+        placeholder="Categoria"
+        list="catalog-categories"
+        className="w-28 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1"
       />
       <input
         value={price}
