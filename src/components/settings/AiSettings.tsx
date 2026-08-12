@@ -40,7 +40,6 @@ export function AiSettings() {
   const [aiEnabled, setAiEnabled] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [persona, setPersona] = useState('');
-  const [hours, setHours] = useState('');
   const [hoursDays, setHoursDays] = useState<number[]>([]);
   const [hoursStart, setHoursStart] = useState('09:00');
   const [hoursEnd, setHoursEnd] = useState('19:00');
@@ -60,7 +59,6 @@ export function AiSettings() {
     setAiEnabled(user.aiEnabled);
     setBusinessName(user.aiBusinessName ?? '');
     setPersona(user.aiPersona ?? '');
-    setHours(user.aiBusinessInfo?.hours ?? '');
     const structured = user.aiBusinessHours?.[0];
     setHoursDays(structured?.days ?? []);
     setHoursStart(structured?.start ?? '09:00');
@@ -107,7 +105,6 @@ export function AiSettings() {
         aiBusinessName: businessName.trim() || undefined,
         aiPersona: persona.trim() || undefined,
         aiBusinessInfo: {
-          hours: hours.trim() || undefined,
           serviceAreas: splitList(serviceAreas),
           paymentMethods: splitList(paymentMethods),
           minOrderCents,
@@ -179,39 +176,26 @@ export function AiSettings() {
           />
         </label>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className={labelClass}>Horário de funcionamento (texto pra IA mostrar ao cliente)</span>
-            <input
-              value={hours}
-              onChange={(e) => {
-                setHours(e.target.value);
-                markDirty();
-              }}
-              placeholder="Ex.: Seg a sáb, 9h às 19h"
-              className={inputClass}
-            />
-          </label>
-          <label className="block">
-            <span className={labelClass}>Valor mínimo (opcional)</span>
-            <input
-              value={minOrder}
-              onChange={(e) => {
-                setMinOrder(e.target.value);
-                markDirty();
-              }}
-              inputMode="decimal"
-              placeholder="Ex.: 25,00"
-              className={inputClass}
-            />
-          </label>
-        </div>
+        <label className="block max-w-[220px]">
+          <span className={labelClass}>Valor mínimo (opcional)</span>
+          <input
+            value={minOrder}
+            onChange={(e) => {
+              setMinOrder(e.target.value);
+              markDirty();
+            }}
+            inputMode="decimal"
+            placeholder="Ex.: 25,00"
+            className={inputClass}
+          />
+        </label>
 
         <div className="rounded-lg border border-line bg-white px-3 py-3">
-          <span className={labelClass}>Dias e horário válidos pra confirmar um pedido</span>
+          <span className={labelClass}>Horário de funcionamento</span>
           <p className="mb-2 text-xs text-ink/40">
-            Diferente do texto acima, isto é o que o sistema realmente confere — a IA nunca confirma um
-            pedido pra um horário fora daqui, mesmo que o cliente insista.
+            Isto é o que o sistema realmente confere — a IA nunca confirma um pedido pra um horário
+            fora daqui, mesmo que o cliente insista, e é o mesmo texto que ela mostra pro cliente
+            quando perguntam o horário.
           </p>
           <div className="flex flex-wrap gap-1.5">
             {WEEKDAYS.map(({ day, label }) => (
@@ -252,8 +236,8 @@ export function AiSettings() {
           </div>
           {hoursDays.length === 0 && (
             <p className="mt-2 text-xs text-ink/40">
-              Nenhum dia selecionado — sem isso, o sistema não bloqueia nenhum horário (só o texto acima é
-              mostrado ao cliente).
+              Nenhum dia selecionado — sem isso, o sistema não bloqueia nenhum horário nem mostra um
+              horário de funcionamento pro cliente.
             </p>
           )}
         </div>

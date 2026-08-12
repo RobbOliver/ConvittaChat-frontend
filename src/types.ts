@@ -18,7 +18,6 @@ export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM';
 /** Free-shape business info the admin fills in for the AI — every field optional, no field
  * assumes a specific kind of business. */
 export interface AiBusinessInfo {
-  hours?: string;
   serviceAreas?: string[];
   paymentMethods?: string[];
   minOrderCents?: number;
@@ -26,8 +25,9 @@ export interface AiBusinessInfo {
 }
 
 /** One weekly recurring window — `days` uses JS's own 0=domingo..6=sábado numbering, `start`/`end`
- * are "HH:mm" 24h. This is what the backend actually validates a requested time against —
- * AiBusinessInfo.hours stays a free-text display line only, never parsed for that. */
+ * are "HH:mm" 24h. This is what the backend both validates a requested time against AND derives
+ * the customer-facing "horário de funcionamento" display text from (see backend's
+ * formatBusinessHoursDisplay) — no separate free-text field to keep in sync by hand. */
 export interface AiBusinessHoursRange {
   days: number[];
   start: string;
