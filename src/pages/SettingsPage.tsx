@@ -1,11 +1,21 @@
+import { useState } from 'react';
 import { SidebarNav } from '../components/layout/SidebarNav';
 import { AiCatalogEditor } from '../components/settings/AiCatalogEditor';
-import { AiSettings } from '../components/settings/AiSettings';
+import { AiFlowTab } from '../components/settings/ai-flow/AiFlowTab';
 import { PixSettings } from '../components/settings/PixSettings';
 import { SalesFieldDefinitions } from '../components/settings/SalesFieldDefinitions';
 import { useCurrentUser, useUpdateInboxType } from '../hooks/useCurrentUser';
 import { PRESS } from '../lib/interactions';
 import type { InboxType } from '../types';
+
+type SalesSettingsTab = 'fluxo' | 'catalogo' | 'campos' | 'pix';
+
+const SALES_TABS: { value: SalesSettingsTab; label: string }[] = [
+  { value: 'fluxo', label: 'Fluxo de IA' },
+  { value: 'catalogo', label: 'Catálogo' },
+  { value: 'campos', label: 'Campos' },
+  { value: 'pix', label: 'Pix' },
+];
 
 const INBOX_TYPE_OPTIONS: { value: InboxType; title: string; description: string }[] = [
   {
@@ -28,6 +38,7 @@ const INBOX_TYPE_LABEL: Record<InboxType, string> = {
 export function SettingsPage() {
   const { data: user, isLoading } = useCurrentUser();
   const updateInboxType = useUpdateInboxType();
+  const [activeTab, setActiveTab] = useState<SalesSettingsTab>('fluxo');
 
   const current = user?.inboxType ?? 'SECTOR';
 
@@ -84,38 +95,66 @@ export function SettingsPage() {
 
             {current === 'SALES' ? (
               <>
-                <p className="mt-1 text-sm text-ink/50">
-                  Campos personalizados disponíveis para todos os contatos — cada contato preenche seu próprio valor
-                  na aba lateral do chat.
-                </p>
-                <div className="mt-4">
-                  <SalesFieldDefinitions />
+                <div role="tablist" aria-label="Seções de configuração" className="mt-4 flex flex-wrap gap-2">
+                  {SALES_TABS.map((tab) => {
+                    const isActive = activeTab === tab.value;
+                    return (
+                      <button
+                        key={tab.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setActiveTab(tab.value)}
+                        className={`rounded-full border px-4 py-1.5 text-sm font-medium ${PRESS} ${
+                          isActive
+                            ? 'border-signal bg-signal/10 text-ink'
+                            : 'border-line bg-paper text-ink/60 hover:bg-mist'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <h3 className="mt-8 font-display text-base font-semibold text-ink">Pix</h3>
-                <p className="mt-1 text-sm text-ink/50">
-                  Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer conversa.
-                </p>
-                <div className="mt-4">
-                  <PixSettings />
-                </div>
-
-                <h3 className="mt-8 font-display text-base font-semibold text-ink">Inteligência Artificial</h3>
-                <p className="mt-1 text-sm text-ink/50">
-                  Configure como a IA se comporta ao responder automaticamente pelo WhatsApp — persona,
-                  regras e segurança valem para qualquer tipo de negócio.
-                </p>
-                <div className="mt-4">
-                  <AiSettings />
-                </div>
-
-                <h4 className="mt-6 font-display text-sm font-semibold text-ink">Catálogo</h4>
-                <p className="mt-1 text-sm text-ink/50">
-                  Produtos, serviços ou itens que a IA pode citar e vender — ela nunca menciona preço
-                  ou item fora desta lista.
-                </p>
-                <div className="mt-4">
-                  <AiCatalogEditor />
+                <div className="mt-6">
+                  {activeTab === 'fluxo' && <AiFlowTab />}
+                  {activeTab === 'catalogo' && (
+                    <>
+                      <h3 className="font-display text-base font-semibold text-ink">Catálogo</h3>
+                      <p className="mt-1 text-sm text-ink/50">
+                        Produtos, serviços ou itens que a IA pode citar e vender — ela nunca menciona preço
+                        ou item fora desta lista.
+                      </p>
+                      <div className="mt-4">
+                        <AiCatalogEditor />
+                      </div>
+                    </>
+                  )}
+                  {activeTab === 'campos' && (
+                    <>
+                      <h3 className="font-display text-base font-semibold text-ink">Campos</h3>
+                      <p className="mt-1 text-sm text-ink/50">
+                        Campos personalizados disponíveis para todos os contatos — cada contato preenche seu
+                        próprio valor na aba lateral do chat.
+                      </p>
+                      <div className="mt-4">
+                        <SalesFieldDefinitions />
+                      </div>
+                    </>
+                  )}
+                  {activeTab === 'pix' && (
+                    <>
+                      <h3 className="font-display text-base font-semibold text-ink">Pix</h3>
+                      <p className="mt-1 text-sm text-ink/50">
+                        Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer
+                        conversa.
+                      </p>
+                      <div className="mt-4">
+                        <PixSettings />
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             ) : (

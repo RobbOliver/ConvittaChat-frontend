@@ -67,6 +67,34 @@ export interface CurrentUser {
   aiCatalogItems: AiCatalogItem[];
 }
 
+export type AiFlowNodeType = 'TRIGGER' | 'AI_MESSAGE' | 'CONDITION' | 'END';
+
+export interface AiFlowNode {
+  id: string;
+  type: AiFlowNodeType;
+  label: string;
+  positionX: number;
+  positionY: number;
+  config: unknown;
+}
+
+export interface AiFlowEdge {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  routeLabel: string | null;
+  isFallback: boolean;
+}
+
+/** The account's conversation flow graph — see GET /ai-flow. Every account always has exactly
+ * one; a brand new account gets the default TRIGGER → AI_MESSAGE → END graph auto-created. */
+export interface AiFlow {
+  id: string;
+  name: string;
+  nodes: AiFlowNode[];
+  edges: AiFlowEdge[];
+}
+
 export interface Contact {
   id: string;
   whatsappJid: string;
