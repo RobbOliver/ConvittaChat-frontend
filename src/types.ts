@@ -183,6 +183,24 @@ export interface ConversationSummary {
   updatedAt: string;
 }
 
+export interface FlowTraceEntry {
+  at: string;
+  nodeLabel: string;
+  nodeType: string;
+  note?: string;
+}
+
+/** Read-only "where is this conversation in the flow, and how did it get here" for the debug
+ * panel — see GET /conversations/:id/flow-trace. `status: null` means the interpreter has never
+ * run a turn for this conversation yet, same as sitting at the flow's TRIGGER node. */
+export interface FlowTrace {
+  status: 'RUNNING' | 'COMPLETED' | null;
+  currentNodeId: string | null;
+  currentNodeLabel: string | null;
+  currentNodeType: AiFlowNodeType | null;
+  trace: FlowTraceEntry[];
+}
+
 export interface ConversationDetail {
   id: string;
   stage: ConversationStage;

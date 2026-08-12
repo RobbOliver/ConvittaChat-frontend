@@ -3,6 +3,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useUpdateConversationAi } from '../../hooks/useUpdateConversationAi';
 import type { ConversationDetail } from '../../types';
 import { AiContextResetModal } from './AiContextResetModal';
+import { FlowTracePanel } from './FlowTracePanel';
 import { PRESS } from '../../lib/interactions';
 import { Toggle } from '../ui/Toggle';
 
@@ -68,6 +69,8 @@ export function AiConversationPanel({ conversation }: Props) {
           esse contato.
         </span>
       </label>
+
+      <FlowTracePanel conversationId={conversation.id} />
 
       <div className="mt-4">
         <p className="pb-1 text-[11px] font-semibold uppercase tracking-wide text-ink/35">Contexto do dia</p>
