@@ -1,14 +1,17 @@
 import {
   addEdge,
   Background,
+  ConnectionMode,
   Controls,
   MarkerType,
   ReactFlow,
   useEdgesState,
   useNodesState,
+  type Connection,
   type Edge,
   type EdgeMouseHandler,
   type EdgeTypes,
+  type IsValidConnection,
   type Node,
   type NodeMouseHandler,
   type NodeTypes,
@@ -72,6 +75,15 @@ function makeId(): string {
     : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+// Flows saved before the single-handle-per-side redesign stored ids like "right-source"/"left-
+// target" (two handles per side); the redesign collapsed those into one handle per side, id'd
+// just "right"/"left". Strip the old suffix on load so those edges still snap to a real handle
+// instead of silently failing to render.
+function normalizeHandleId(id: string | null | undefined): string | undefined {
+  if (!id) return undefined;
+  return id.replace(/-(source|target)$/, '');
+}
+
 /**
  * Editable canvas for the account's flow graph: drag nodes, add an AI_MESSAGE/CONDITION/END node,
  * remove a node (the "×" button or the delete key — never on TRIGGER, always exactly one), connect
@@ -124,8 +136,8 @@ export function FlowCanvas() {
         id: e.id,
         source: e.sourceId,
         target: e.targetId,
-        sourceHandle: e.sourceHandle ?? undefined,
-        targetHandle: e.targetHandle ?? undefined,
+        sourceHandle: normalizeHandleId(e.sourceHandle),
+        targetHandle: normalizeHandleId(e.targetHandle),
         type: e.sourceId === e.targetId ? 'selfLoop' : undefined,
         label: e.routeLabel ?? undefined,
         style: e.isFallback ? { strokeDasharray: '4 4' } : undefined,
@@ -169,6 +181,17 @@ export function FlowCanvas() {
     if (changes.some((c) => c.type !== 'select')) setIsDirty(true);
     if (changes.some((c) => c.type === 'remove')) history.push(nodesRef.current, edgesRef.current);
     applyEdgesChange(changes);
+  };
+
+  // Loose connectionMode lifts the source/target handle-type restriction (any handle can start or
+  // end a drag), so the "no incoming edge on the start node / no outgoing edge on the end node"
+  // rule that used to come from simply not rendering that handle now has to be checked here.
+  const isValidConnection: IsValidConnection<Edge> = (connection: Connection | Edge) => {
+    const sourceType = nodes.find((n) => n.id === connection.source)?.data.nodeType;
+    const targetType = nodes.find((n) => n.id === connection.target)?.data.nodeType;
+    if (targetType === 'TRIGGER') return false;
+    if (sourceType === 'END') return false;
+    return true;
   };
 
   const onConnect: OnConnect = (connection) => {
@@ -458,6 +481,8 @@ export function FlowCanvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          isValidConnection={isValidConnection}
+          connectionMode={ConnectionMode.Loose}
           onNodeDoubleClick={onNodeDoubleClick}
           onEdgeDoubleClick={onEdgeDoubleClick}
           onInit={(instance) => {
