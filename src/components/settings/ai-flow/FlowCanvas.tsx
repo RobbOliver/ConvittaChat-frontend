@@ -21,12 +21,14 @@ import {
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAiFlow, useUpdateAiFlow } from '../../../hooks/useAiFlow';
 import { PRESS_SM } from '../../../lib/interactions';
 import type { AiFlowNodeType } from '../../../types';
 import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
+import { FlowJsPanel } from './FlowJsPanel';
+import { parseFlowJs, serializeFlowAsJs } from './flowJsSerializer';
 import { FlowVariablesPanel } from './FlowVariablesPanel';
 import {
   AiMessageNode,
@@ -314,6 +316,60 @@ export function FlowCanvas() {
     requestAnimationFrame(() => reactFlowInstance.current?.fitView({ padding: 0.3, duration: 200 }));
   }
 
+  const jsText = useMemo(() => serializeFlowAsJs(nodes, edges), [nodes, edges]);
+
+  /** Replaces the entire canvas with what's parsed from `text` (the "JS" panel's paste-to-replicate
+   * behavior) — always a full replace, never a merge, matching "substituir" not "somar". Positions
+   * are never trusted from the pasted text (there aren't any — flowJsSerializer omits them on
+   * purpose); auto-layout runs immediately after, so hand-written/chat-authored flow text never
+   * needs to specify pixel coordinates. Returns an error string instead of throwing, so the panel
+   * can show it inline without a try/catch at the call site. */
+  function handleApplyFlowJs(text: string): string | null {
+    let parsed: ReturnType<typeof parseFlowJs>;
+    try {
+      parsed = parseFlowJs(text);
+    } catch (err) {
+      return err instanceof Error ? err.message : 'Não foi possível interpretar esse código.';
+    }
+
+    history.push(nodesRef.current, edgesRef.current);
+    // Never trust ids from pasted text as real ids — a paste of this same canvas's own export
+    // would otherwise collide with (or silently reuse) ids a ConversationFlowState row might still
+    // reference, orphaning in-progress conversations the moment "Salvar fluxo" is clicked.
+    const realId = new Map(parsed.nodes.map((n) => [n.id, makeId()]));
+    const newNodes: Node<FlowNodeData>[] = parsed.nodes.map((n) => ({
+      id: realId.get(n.id) as string,
+      type: n.type,
+      position: { x: 0, y: 0 },
+      data: { label: n.label, nodeType: n.type, config: n.config },
+    }));
+    const newEdges: Edge[] = parsed.edges.map((e) => {
+      const source = realId.get(e.source) as string;
+      const target = realId.get(e.target) as string;
+      return {
+        id: makeId(),
+        source,
+        target,
+        type: source === target ? 'selfLoop' : undefined,
+        label: e.routeLabel ?? undefined,
+        style: e.isFallback ? { strokeDasharray: '4 4' } : undefined,
+        labelStyle: { fill: '#14161f', fontSize: 11 },
+        labelBgStyle: { fill: '#ffffff' },
+        markerEnd: { type: MarkerType.ArrowClosed },
+        data: { routeLabel: e.routeLabel, isFallback: e.isFallback } satisfies EdgeData,
+      };
+    });
+    const positions = autoLayoutPositions(
+      newNodes.map((n) => ({ id: n.id, type: n.data.nodeType })),
+      newEdges.map((e) => ({ sourceId: e.source, targetId: e.target })),
+    );
+    setNodes(newNodes.map((n) => ({ ...n, position: positions[n.id] ?? { x: 0, y: 0 } })));
+    setEdges(newEdges);
+    setIsDirty(true);
+    requestAnimationFrame(() => reactFlowInstance.current?.fitView({ padding: 0.3, duration: 200 }));
+    return null;
+  }
+
   function handleSave() {
     updateFlow.mutate(
       {
@@ -471,34 +527,37 @@ export function FlowCanvas() {
         </div>
       )}
 
-      <div className="relative mt-3 h-[640px] overflow-hidden rounded-xl border border-line bg-mist/40">
-        <FlowVariablesPanel />
-        <ReactFlow
-          nodes={displayNodes}
-          edges={edges}
-          nodeTypes={NODE_TYPES}
-          edgeTypes={EDGE_TYPES}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          isValidConnection={isValidConnection}
-          connectionMode={ConnectionMode.Loose}
-          onNodeDoubleClick={onNodeDoubleClick}
-          onEdgeDoubleClick={onEdgeDoubleClick}
-          onInit={(instance) => {
-            reactFlowInstance.current = instance;
-          }}
-          deleteKeyCode={['Backspace', 'Delete']}
-          panOnScroll
-          zoomOnScroll={false}
-          zoomOnPinch
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background color="#e4e4e9" gap={20} />
-          <Controls showInteractive={false} position="bottom-right" />
-        </ReactFlow>
+      <div className="mt-3 flex h-[640px] items-stretch gap-2">
+        <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-mist/40">
+          <FlowVariablesPanel />
+          <ReactFlow
+            nodes={displayNodes}
+            edges={edges}
+            nodeTypes={NODE_TYPES}
+            edgeTypes={EDGE_TYPES}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            isValidConnection={isValidConnection}
+            connectionMode={ConnectionMode.Loose}
+            onNodeDoubleClick={onNodeDoubleClick}
+            onEdgeDoubleClick={onEdgeDoubleClick}
+            onInit={(instance) => {
+              reactFlowInstance.current = instance;
+            }}
+            deleteKeyCode={['Backspace', 'Delete']}
+            panOnScroll
+            zoomOnScroll={false}
+            zoomOnPinch
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="#e4e4e9" gap={20} />
+            <Controls showInteractive={false} position="bottom-right" />
+          </ReactFlow>
+        </div>
+        <FlowJsPanel value={jsText} onApply={handleApplyFlowJs} />
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
         {LEGEND.map((item) => (
