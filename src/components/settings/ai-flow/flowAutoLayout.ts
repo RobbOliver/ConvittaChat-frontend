@@ -8,12 +8,13 @@ const ROW_HEIGHT = 130;
  * yet, since positions only start meaning anything once Fase 3's editable canvas lets an admin
  * move nodes around. Rather than rendering every node stacked on top of itself, this computes a
  * simple left-to-right layered layout: each node's column is its hop-distance from TRIGGER (a
- * plain BFS), with same-depth nodes stacked vertically. Good enough for a read-only preview of a
- * graph nobody has laid out by hand yet — not meant to replace real positions once editing exists.
+ * plain BFS), with same-depth nodes stacked vertically. Used both for that first-load seed and,
+ * on demand, by FlowCanvas's "Auto-organizar" button — the algorithm itself is agnostic to which
+ * side of a node any connection visually uses, so it works the same regardless of layout direction.
  */
 export function autoLayoutPositions(
-  nodes: AiFlowNode[],
-  edges: AiFlowEdge[],
+  nodes: Pick<AiFlowNode, 'id' | 'type'>[],
+  edges: Pick<AiFlowEdge, 'sourceId' | 'targetId'>[],
 ): Record<string, { x: number; y: number }> {
   const outgoing = new Map<string, string[]>();
   for (const edge of edges) {

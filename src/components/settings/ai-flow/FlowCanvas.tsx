@@ -2,11 +2,13 @@ import {
   addEdge,
   Background,
   Controls,
+  MarkerType,
   ReactFlow,
   useEdgesState,
   useNodesState,
   type Edge,
   type EdgeMouseHandler,
+  type EdgeTypes,
   type Node,
   type NodeMouseHandler,
   type NodeTypes,
@@ -22,8 +24,18 @@ import { PRESS_SM } from '../../../lib/interactions';
 import type { AiFlowNodeType } from '../../../types';
 import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
-import { AiMessageNode, ConditionNode, EndNode, TextNode, TriggerNode, type FlowNodeData } from './FlowNodes';
+import { FlowVariablesPanel } from './FlowVariablesPanel';
+import {
+  AiMessageNode,
+  ConditionNode,
+  EndNode,
+  TextNode,
+  TriggerNode,
+  WaitReplyNode,
+  type FlowNodeData,
+} from './FlowNodes';
 import { NodeConfigModal, type EditableNode } from './NodeConfigModal';
+import { SelfLoopEdge } from './SelfLoopEdge';
 import { useGraphHistory } from './useGraphHistory';
 
 const NODE_TYPES: NodeTypes = {
@@ -32,6 +44,11 @@ const NODE_TYPES: NodeTypes = {
   CONDITION: ConditionNode,
   TEXT: TextNode,
   END: EndNode,
+  WAIT_REPLY: WaitReplyNode,
+};
+
+const EDGE_TYPES: EdgeTypes = {
+  selfLoop: SelfLoopEdge,
 };
 
 const LEGEND: { type: AiFlowNodeType; label: string; dot: string }[] = [
@@ -39,6 +56,7 @@ const LEGEND: { type: AiFlowNodeType; label: string; dot: string }[] = [
   { type: 'AI_MESSAGE', label: 'Mensagem de IA', dot: 'bg-signal' },
   { type: 'CONDITION', label: 'Condição', dot: 'bg-ink/40' },
   { type: 'TEXT', label: 'Texto fixo', dot: 'bg-stage-won' },
+  { type: 'WAIT_REPLY', label: 'Resposta do cliente', dot: 'bg-stage-lost' },
   { type: 'END', label: 'Fim', dot: 'bg-ink' },
 ];
 
@@ -106,10 +124,14 @@ export function FlowCanvas() {
         id: e.id,
         source: e.sourceId,
         target: e.targetId,
+        sourceHandle: e.sourceHandle ?? undefined,
+        targetHandle: e.targetHandle ?? undefined,
+        type: e.sourceId === e.targetId ? 'selfLoop' : undefined,
         label: e.routeLabel ?? undefined,
         style: e.isFallback ? { strokeDasharray: '4 4' } : undefined,
         labelStyle: { fill: '#14161f', fontSize: 11 },
         labelBgStyle: { fill: '#ffffff' },
+        markerEnd: { type: MarkerType.ArrowClosed },
         data: { routeLabel: e.routeLabel, isFallback: e.isFallback } satisfies EdgeData,
       })),
     );
@@ -156,7 +178,16 @@ export function FlowCanvas() {
     }
     history.push(nodesRef.current, edgesRef.current);
     setEdges((eds) =>
-      addEdge({ ...connection, id: makeId(), data: { routeLabel: null, isFallback: false } satisfies EdgeData }, eds),
+      addEdge(
+        {
+          ...connection,
+          id: makeId(),
+          type: connection.source === connection.target ? 'selfLoop' : undefined,
+          markerEnd: { type: MarkerType.ArrowClosed },
+          data: { routeLabel: null, isFallback: false } satisfies EdgeData,
+        },
+        eds,
+      ),
     );
     setIsDirty(true);
   };
@@ -222,13 +253,14 @@ export function FlowCanvas() {
     setIsDirty(true);
   }
 
-  function handleAddNode(type: 'AI_MESSAGE' | 'CONDITION' | 'TEXT' | 'END') {
+  function handleAddNode(type: 'AI_MESSAGE' | 'CONDITION' | 'TEXT' | 'END' | 'WAIT_REPLY') {
     const maxX = nodes.reduce((max, n) => Math.max(max, n.position.x), 0);
     const label = {
       AI_MESSAGE: 'Nova mensagem',
       CONDITION: 'Nova condição',
       TEXT: 'Novo texto',
       END: 'Novo fim',
+      WAIT_REPLY: 'Nova resposta do cliente',
     }[type];
     history.push(nodesRef.current, edgesRef.current);
     const newNode: Node<FlowNodeData> = {
@@ -242,6 +274,20 @@ export function FlowCanvas() {
     // A newly-added node can land outside the last fitView's frame (each addition pushes further
     // right) — re-fit once the new node has actually rendered/measured, or it's invisible until
     // the admin manually pans/zooms to find it.
+    requestAnimationFrame(() => reactFlowInstance.current?.fitView({ padding: 0.3, duration: 200 }));
+  }
+
+  /** Recomputes a clean layered layout on demand (the same BFS-by-hop-depth algorithm that seeds a
+   * brand new flow) — works regardless of which side of a node any connection visually uses, since
+   * the algorithm only looks at the graph's structure, never at handle positions. */
+  function handleAutoLayout() {
+    history.push(nodesRef.current, edgesRef.current);
+    const positions = autoLayoutPositions(
+      nodes.map((n) => ({ id: n.id, type: n.data.nodeType })),
+      edges.map((e) => ({ sourceId: e.source, targetId: e.target })),
+    );
+    setNodes((nds) => nds.map((n) => ({ ...n, position: positions[n.id] ?? n.position })));
+    setIsDirty(true);
     requestAnimationFrame(() => reactFlowInstance.current?.fitView({ padding: 0.3, duration: 200 }));
   }
 
@@ -264,6 +310,8 @@ export function FlowCanvas() {
             targetId: e.target,
             routeLabel: data?.routeLabel ?? null,
             isFallback: data?.isFallback ?? false,
+            sourceHandle: e.sourceHandle ?? null,
+            targetHandle: e.targetHandle ?? null,
           };
         }),
       },
@@ -311,11 +359,11 @@ export function FlowCanvas() {
   });
 
   if (isLoading) {
-    return <div className="flex h-[420px] items-center justify-center text-sm text-ink/40">Carregando fluxo…</div>;
+    return <div className="flex h-[640px] items-center justify-center text-sm text-ink/40">Carregando fluxo…</div>;
   }
   if (isError || !flow) {
     return (
-      <div className="flex h-[420px] items-center justify-center text-sm text-stage-lost">
+      <div className="flex h-[640px] items-center justify-center text-sm text-stage-lost">
         Não foi possível carregar o fluxo. Tente recarregar a página.
       </div>
     );
@@ -355,10 +403,25 @@ export function FlowCanvas() {
         </button>
         <button
           type="button"
+          onClick={() => handleAddNode('WAIT_REPLY')}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+        >
+          + Resposta do cliente
+        </button>
+        <button
+          type="button"
           onClick={() => handleAddNode('END')}
           className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
         >
           + Fim
+        </button>
+        <button
+          type="button"
+          onClick={handleAutoLayout}
+          title="Reorganiza automaticamente a posição de todos os passos"
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+        >
+          Auto-organizar
         </button>
         <div className="ml-auto flex items-center gap-3">
           {updateFlow.isError && <span className="text-xs text-stage-lost">Não foi possível salvar.</span>}
@@ -385,11 +448,13 @@ export function FlowCanvas() {
         </div>
       )}
 
-      <div className="mt-3 h-[420px] overflow-hidden rounded-xl border border-line bg-mist/40">
+      <div className="relative mt-3 h-[640px] overflow-hidden rounded-xl border border-line bg-mist/40">
+        <FlowVariablesPanel />
         <ReactFlow
           nodes={displayNodes}
           edges={edges}
           nodeTypes={NODE_TYPES}
+          edgeTypes={EDGE_TYPES}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}

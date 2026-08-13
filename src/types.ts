@@ -84,7 +84,13 @@ export interface CurrentUser {
   aiCatalogItems: AiCatalogItem[];
 }
 
-export type AiFlowNodeType = 'TRIGGER' | 'AI_MESSAGE' | 'CONDITION' | 'TEXT' | 'END';
+export type AiFlowNodeType =
+  | 'TRIGGER'
+  | 'AI_MESSAGE'
+  | 'CONDITION'
+  | 'TEXT'
+  | 'END'
+  | 'WAIT_REPLY';
 
 export type ConditionOperator = 'isSet' | 'isEmpty' | 'equals' | 'notEquals';
 
@@ -97,6 +103,26 @@ export interface ConditionRule {
   operator: ConditionOperator;
   value?: string;
   targetEdgeLabel: string;
+}
+
+/** A free-text condition evaluated by the backend's sandboxed expression engine — references data
+ * via `$cp.Campo$` (a custom field), `$Variavel$` (an AiFlowVariable, no prefix), or the two bare
+ * reserved names `$horarioValido$`/`$neighborhoodConfirmed$`. */
+export interface ExpressionConditionRule {
+  expression: string;
+  targetEdgeLabel: string;
+}
+
+/** `mode` absent means `'FIELD'` — every CONDITION node saved before expression mode existed. */
+export type ConditionNodeConfig =
+  | { mode?: 'FIELD'; rules: ConditionRule[] }
+  | { mode: 'EXPRESSION'; rules: ExpressionConditionRule[] };
+
+/** Always stops and waits for the customer's next message when reached — `assign` picks at most
+ * one destination for the raw reply text; `timeoutMinutes` unset means wait forever. */
+export interface WaitReplyNodeConfig {
+  assign?: { kind: 'FIELD'; key: string } | { kind: 'VARIABLE'; key: string };
+  timeoutMinutes?: number;
 }
 
 export interface AiFlowNode {
@@ -114,6 +140,17 @@ export interface AiFlowEdge {
   targetId: string;
   routeLabel: string | null;
   isFallback: boolean;
+  /** Which of a node's 4 sides this connection visually starts/ends at — canvas-only. */
+  sourceHandle: string | null;
+  targetHandle: string | null;
+}
+
+/** A flow-internal working variable's definition — managed once in the flow canvas's "Variáveis"
+ * panel, its per-conversation value written by a WAIT_REPLY node's "assign to variable" action. */
+export interface AiFlowVariable {
+  id: string;
+  key: string;
+  createdAt: string;
 }
 
 /** The account's conversation flow graph — see GET /ai-flow. Every account always has exactly

@@ -11,14 +11,61 @@ export interface FlowNodeData {
   [key: string]: unknown;
 }
 
+const SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left];
+
+/**
+ * Two stacked handles per side (8 total) — one `target`, one `source`, offset a few percent apart
+ * so both stay independently draggable. Deliberately NOT `connectionMode="loose"` with one dual-
+ * purpose handle per side: xyflow has a documented bug where a loose-mode handle serving as both
+ * source and target can attach a drag to the wrong one. Staying in the (default) strict mode with
+ * two real handles avoids that entirely, at the cost of these extra elements.
+ */
+function SideHandles({
+  position,
+  showTarget,
+  showSource,
+}: {
+  position: Position;
+  showTarget: boolean;
+  showSource: boolean;
+}) {
+  const isHorizontalEdge = position === Position.Top || position === Position.Bottom;
+  const offsetStyle = (pct: string) => (isHorizontalEdge ? { left: pct } : { top: pct });
+  return (
+    <>
+      {showTarget && (
+        <Handle
+          type="target"
+          position={position}
+          id={`${position}-target`}
+          className="!bg-ink/40"
+          style={offsetStyle('35%')}
+        />
+      )}
+      {showSource && (
+        <Handle
+          type="source"
+          position={position}
+          id={`${position}-source`}
+          className="!bg-ink/40"
+          style={offsetStyle('65%')}
+        />
+      )}
+    </>
+  );
+}
+
 function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
   const style = NODE_STYLES[data.nodeType];
   const isEnd = data.nodeType === 'END';
+  const isTrigger = data.nodeType === 'TRIGGER';
   return (
     <div
       className={`group relative w-56 cursor-pointer rounded-xl border-2 px-4 py-3 shadow-sm ${style.border} ${style.bg}`}
     >
-      {data.nodeType !== 'TRIGGER' && <Handle type="target" position={Position.Left} className="!bg-ink/40" />}
+      {SIDES.map((side) => (
+        <SideHandles key={side} position={side} showTarget={!isTrigger} showSource={!isEnd} />
+      ))}
       {data.onDelete && (
         <button
           type="button"
@@ -41,7 +88,6 @@ function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
       <p className={`mt-1.5 truncate text-sm font-semibold ${isEnd ? 'text-paper' : 'text-ink'}`} title={data.label}>
         {data.label}
       </p>
-      {!isEnd && <Handle type="source" position={Position.Right} className="!bg-ink/40" />}
     </div>
   );
 }
@@ -59,6 +105,9 @@ export function TextNode(props: NodeProps) {
   return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
 }
 export function EndNode(props: NodeProps) {
+  return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
+}
+export function WaitReplyNode(props: NodeProps) {
   return <FlowNodeCard {...(props as NodeProps & { data: FlowNodeData })} />;
 }
 

@@ -53,6 +53,7 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
   }
 
   function handleSave() {
+    if (!item) return;
     const parsed = rows
       .map((row, index) => ({
         id: row.id,

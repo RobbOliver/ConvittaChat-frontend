@@ -16,7 +16,10 @@ export function useAiFlow() {
 
 export interface UpdateAiFlowInput {
   nodes: Pick<AiFlowNode, 'id' | 'type' | 'label' | 'positionX' | 'positionY' | 'config'>[];
-  edges: Pick<AiFlowEdge, 'id' | 'sourceId' | 'targetId' | 'routeLabel' | 'isFallback'>[];
+  edges: Pick<
+    AiFlowEdge,
+    'id' | 'sourceId' | 'targetId' | 'routeLabel' | 'isFallback' | 'sourceHandle' | 'targetHandle'
+  >[];
 }
 
 export function useUpdateAiFlow() {

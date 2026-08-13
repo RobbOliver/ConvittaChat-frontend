@@ -1,11 +1,9 @@
-import { AiSettings } from '../AiSettings';
 import { FlowCanvas } from './FlowCanvas';
 
 /**
- * The "Fluxo de IA" settings tab: the editable conversation graph (see FlowCanvas's doc comment)
- * plus the account-wide AI settings, which still apply to every node (persona, horário, catálogo
- * de regras, etc.) rather than being per-node config. AiSettings itself is unchanged, just
- * relocated here from the old flat settings page.
+ * The "Fluxo de IA" settings tab: just the editable conversation graph (see FlowCanvas's doc
+ * comment). Account-wide AI settings (persona, horário, catálogo de regras, etc.) live in their
+ * own "Configurações Gerais" tab (SettingsPage) instead of being bundled under this one.
  */
 export function AiFlowTab() {
   return (
@@ -17,14 +15,6 @@ export function AiFlowTab() {
       </p>
       <div className="mt-4">
         <FlowCanvas />
-      </div>
-
-      <h3 className="mt-10 font-display text-base font-semibold text-ink">Configurações gerais</h3>
-      <p className="mt-1 text-sm text-ink/50">
-        Persona, horário e regras de segurança valem para todos os passos do fluxo acima.
-      </p>
-      <div className="mt-4">
-        <AiSettings />
       </div>
     </div>
   );

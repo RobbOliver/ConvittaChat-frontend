@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SidebarNav } from '../components/layout/SidebarNav';
 import { AiCatalogEditor } from '../components/settings/AiCatalogEditor';
+import { AiSettings } from '../components/settings/AiSettings';
 import { AiFlowTab } from '../components/settings/ai-flow/AiFlowTab';
 import { PixSettings } from '../components/settings/PixSettings';
 import { SalesFieldDefinitions } from '../components/settings/SalesFieldDefinitions';
@@ -8,9 +9,10 @@ import { useCurrentUser, useUpdateInboxType } from '../hooks/useCurrentUser';
 import { PRESS } from '../lib/interactions';
 import type { InboxType } from '../types';
 
-type SalesSettingsTab = 'fluxo' | 'catalogo' | 'campos' | 'pix';
+type SalesSettingsTab = 'geral' | 'fluxo' | 'catalogo' | 'campos' | 'pix';
 
 const SALES_TABS: { value: SalesSettingsTab; label: string }[] = [
+  { value: 'geral', label: 'Configurações Gerais' },
   { value: 'fluxo', label: 'Fluxo de IA' },
   { value: 'catalogo', label: 'Catálogo' },
   { value: 'campos', label: 'Campos' },
@@ -118,6 +120,17 @@ export function SettingsPage() {
                 </div>
 
                 <div className="mt-6">
+                  {activeTab === 'geral' && (
+                    <>
+                      <h3 className="font-display text-base font-semibold text-ink">Configurações gerais</h3>
+                      <p className="mt-1 text-sm text-ink/50">
+                        Persona, horário e regras de segurança valem para todos os passos do fluxo de IA.
+                      </p>
+                      <div className="mt-4">
+                        <AiSettings />
+                      </div>
+                    </>
+                  )}
                   {activeTab === 'fluxo' && <AiFlowTab />}
                   {activeTab === 'catalogo' && (
                     <>

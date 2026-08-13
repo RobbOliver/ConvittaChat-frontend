@@ -61,6 +61,17 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
       </svg>
     ),
   },
+  WAIT_REPLY: {
+    border: 'border-stage-lost',
+    bg: 'bg-stage-lost-soft',
+    text: 'text-stage-lost',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
+        <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M10 6.5V10l2.8 1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
 };
 
 export const NODE_TYPE_LABEL: Record<AiFlowNodeType, string> = {
@@ -69,4 +80,5 @@ export const NODE_TYPE_LABEL: Record<AiFlowNodeType, string> = {
   CONDITION: 'Condição',
   TEXT: 'Texto fixo',
   END: 'Fim',
+  WAIT_REPLY: 'Resposta do cliente',
 };
