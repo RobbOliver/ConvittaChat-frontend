@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { AiCatalogItem } from '../types';
+import type { AiCatalogItem, AiCatalogPricingMode } from '../types';
 
 export const AI_CATALOG_ITEMS_KEY = ['ai-catalog-items'];
 
@@ -16,6 +16,7 @@ export interface CreateAiCatalogItemInput {
   name: string;
   description?: string;
   category?: string;
+  pricingMode?: AiCatalogPricingMode;
   priceCents: number;
   available?: boolean;
 }
@@ -34,8 +35,13 @@ export interface UpdateAiCatalogItemInput {
   name?: string;
   description?: string;
   category?: string;
+  pricingMode?: AiCatalogPricingMode;
   priceCents?: number;
   available?: boolean;
+  // undefined = leave existing sizes untouched (every per-field save omits this); present —
+  // including [] — means "this is the complete list", diff-upserted against what's stored. Only
+  // CatalogItemSizesModal's "Aplicar" should ever send this.
+  sizes?: { id: string; label: string; priceCents: number; order?: number }[];
 }
 
 export function useUpdateAiCatalogItem() {

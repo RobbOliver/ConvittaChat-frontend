@@ -24,6 +24,7 @@ import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
 import { AiMessageNode, ConditionNode, EndNode, TextNode, TriggerNode, type FlowNodeData } from './FlowNodes';
 import { NodeConfigModal, type EditableNode } from './NodeConfigModal';
+import { useGraphHistory } from './useGraphHistory';
 
 const NODE_TYPES: NodeTypes = {
   TRIGGER: TriggerNode,
@@ -72,6 +73,15 @@ export function FlowCanvas() {
   const [notice, setNotice] = useState<string | null>(null);
   const [seededFlowId, setSeededFlowId] = useState<string | null>(null);
   const reactFlowInstance = useRef<ReactFlowInstance<Node<FlowNodeData>, Edge> | null>(null);
+  const history = useGraphHistory();
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   // Seeds local editable state once per fetched flow id — after that, this component owns canvas
   // state until "Salvar fluxo" (or the tab unmounts, which resets everything back to whatever the
@@ -105,7 +115,10 @@ export function FlowCanvas() {
     );
     setSeededFlowId(flow.id);
     setIsDirty(false);
-  }, [flow, seededFlowId, setNodes, setEdges]);
+    // A freshly-loaded flow (or a different one) should never inherit undo history from whatever
+    // was open on this canvas before.
+    history.clear();
+  }, [flow, seededFlowId, setNodes, setEdges, history]);
 
   function showNotice(message: string) {
     setNotice(message);
@@ -122,11 +135,17 @@ export function FlowCanvas() {
     // 'dimensions' fires on every node's first render (React Flow measuring its DOM size) and
     // 'select' on plain clicks — neither is a real edit, so neither should flip the dirty flag.
     if (filtered.some((c) => c.type !== 'select' && c.type !== 'dimensions')) setIsDirty(true);
+    // Snapshot before a drag actually lands (not on every intermediate move event, or one drag
+    // gesture would flood the stack) and before a Delete-key removal.
+    if (filtered.some((c) => (c.type === 'position' && c.dragging === false) || c.type === 'remove')) {
+      history.push(nodesRef.current, edgesRef.current);
+    }
     applyNodesChange(filtered);
   };
 
   const onEdgesChange: OnEdgesChange = (changes) => {
     if (changes.some((c) => c.type !== 'select')) setIsDirty(true);
+    if (changes.some((c) => c.type === 'remove')) history.push(nodesRef.current, edgesRef.current);
     applyEdgesChange(changes);
   };
 
@@ -135,6 +154,7 @@ export function FlowCanvas() {
       showNotice('Esses dois passos já estão ligados.');
       return;
     }
+    history.push(nodesRef.current, edgesRef.current);
     setEdges((eds) =>
       addEdge({ ...connection, id: makeId(), data: { routeLabel: null, isFallback: false } satisfies EdgeData }, eds),
     );
@@ -159,6 +179,7 @@ export function FlowCanvas() {
   };
 
   function handleNodeSave(nodeId: string, patch: { label: string; config: unknown }) {
+    history.push(nodesRef.current, edgesRef.current);
     setNodes((nds) =>
       nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, label: patch.label, config: patch.config } } : n)),
     );
@@ -166,6 +187,7 @@ export function FlowCanvas() {
   }
 
   function handleEdgeSave(edgeId: string, patch: { routeLabel: string | null; isFallback: boolean }) {
+    history.push(nodesRef.current, edgesRef.current);
     setEdges((eds) => {
       const target = eds.find((e) => e.id === edgeId);
       const sourceId = target?.source;
@@ -194,6 +216,7 @@ export function FlowCanvas() {
   }
 
   function handleDeleteNode(nodeId: string) {
+    history.push(nodesRef.current, edgesRef.current);
     setNodes((nds) => nds.filter((n) => n.id !== nodeId));
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
     setIsDirty(true);
@@ -207,6 +230,7 @@ export function FlowCanvas() {
       TEXT: 'Novo texto',
       END: 'Novo fim',
     }[type];
+    history.push(nodesRef.current, edgesRef.current);
     const newNode: Node<FlowNodeData> = {
       id: makeId(),
       type,
@@ -246,6 +270,45 @@ export function FlowCanvas() {
       { onSuccess: () => setIsDirty(false) },
     );
   }
+
+  function handleUndo() {
+    const snapshot = history.undo({ nodes: nodesRef.current, edges: edgesRef.current });
+    if (!snapshot) return;
+    setNodes(snapshot.nodes);
+    setEdges(snapshot.edges);
+    setIsDirty(true);
+  }
+
+  function handleRedo() {
+    const snapshot = history.redo({ nodes: nodesRef.current, edges: edgesRef.current });
+    if (!snapshot) return;
+    setNodes(snapshot.nodes);
+    setEdges(snapshot.edges);
+    setIsDirty(true);
+  }
+
+  // Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z or Ctrl+Y (redo) at the window level — the canvas has no
+  // DOM ref clean enough to scope this to. Must never fire while a modal is open (its own textarea/
+  // input relies on the browser's native per-field undo) or while any input/textarea has focus.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const key = event.key.toLowerCase();
+      const isUndo = (event.metaKey || event.ctrlKey) && !event.shiftKey && key === 'z';
+      const isRedo =
+        ((event.metaKey || event.ctrlKey) && event.shiftKey && key === 'z') ||
+        (event.ctrlKey && !event.metaKey && key === 'y');
+      if (!isUndo && !isRedo) return;
+      if (editingNode || editingEdge) return;
+      const active = document.activeElement;
+      const tag = active?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (active as HTMLElement | null)?.isContentEditable) return;
+      event.preventDefault();
+      if (isUndo) handleUndo();
+      else handleRedo();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
 
   if (isLoading) {
     return <div className="flex h-[420px] items-center justify-center text-sm text-ink/40">Carregando fluxo…</div>;

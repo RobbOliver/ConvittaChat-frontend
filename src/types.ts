@@ -34,6 +34,15 @@ export interface AiBusinessHoursRange {
   end: string;
 }
 
+export type AiCatalogPricingMode = 'FLAT' | 'BY_SIZE';
+
+export interface AiCatalogItemSize {
+  id: string;
+  label: string;
+  priceCents: number;
+  order: number;
+}
+
 /** One item in the admin's AI catalog — generic on purpose (product, service, or menu item). */
 export interface AiCatalogItem {
   id: string;
@@ -43,7 +52,11 @@ export interface AiCatalogItem {
    * reference a group by name in a flow step's instructions, e.g. "ofereça algo da categoria
    * Bebidas se o pedido não tiver nenhuma". */
   category: string | null;
+  /** BY_SIZE items keep priceCents around (unused everywhere that matters) so toggling back to
+   * FLAT doesn't lose the last flat price entered — see the backend Prisma model's doc comment. */
+  pricingMode: AiCatalogPricingMode;
   priceCents: number;
+  sizes: AiCatalogItemSize[];
   available: boolean;
   order: number;
 }

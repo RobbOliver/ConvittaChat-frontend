@@ -5,19 +5,11 @@ import {
   useDeleteAiCatalogItem,
   useUpdateAiCatalogItem,
 } from '../../hooks/useAiCatalogItems';
+import { formatReais, parseReaisToCents } from '../../lib/currency';
 import { PRESS, PRESS_SM } from '../../lib/interactions';
-import type { AiCatalogItem } from '../../types';
+import type { AiCatalogItem, AiCatalogPricingMode } from '../../types';
+import { CatalogItemSizesModal } from './CatalogItemSizesModal';
 import { Toggle } from '../ui/Toggle';
-
-function formatReais(cents: number): string {
-  return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function parseReaisToCents(value: string): number | null {
-  const normalized = value.trim().replace(/\./g, '').replace(',', '.');
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) : null;
-}
 
 interface CatalogGroup {
   category: string | null;
@@ -59,14 +51,16 @@ export function AiCatalogEditor() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
+  const [pricingMode, setPricingMode] = useState<AiCatalogPricingMode>('FLAT');
   const [error, setError] = useState<string | null>(null);
+  const [sizesEditingItem, setSizesEditingItem] = useState<AiCatalogItem | null>(null);
 
   const existingCategories = [...new Set((items ?? []).map((i) => i.category).filter((c): c is string => !!c))];
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const trimmedName = name.trim();
-    const priceCents = parseReaisToCents(price);
+    const priceCents = pricingMode === 'BY_SIZE' ? 0 : parseReaisToCents(price);
     if (!trimmedName || priceCents === null) return;
 
     setError(null);
@@ -75,14 +69,17 @@ export function AiCatalogEditor() {
         name: trimmedName,
         description: description.trim() || undefined,
         category: category.trim() || undefined,
+        pricingMode,
         priceCents,
       },
       {
-        onSuccess: () => {
+        onSuccess: (created) => {
           setName('');
           setDescription('');
           setCategory('');
           setPrice('');
+          setPricingMode('FLAT');
+          if (created.pricingMode === 'BY_SIZE') setSizesEditingItem(created);
         },
         onError: () => setError('Não foi possível adicionar esse item.'),
       },
@@ -110,7 +107,7 @@ export function AiCatalogEditor() {
               ) : null}
               <ul className="space-y-2">
                 {group.items.map((item) => (
-                  <ItemRow key={item.id} item={item} />
+                  <ItemRow key={item.id} item={item} onManageSizes={() => setSizesEditingItem(item)} />
                 ))}
               </ul>
             </div>
@@ -147,24 +144,35 @@ export function AiCatalogEditor() {
             className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
           />
         </label>
-        <label className="w-28">
-          <span className="mb-1 block text-xs font-medium text-ink/50">Preço (R$)</span>
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="0,00"
-            inputMode="decimal"
-            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
-          />
-        </label>
+        <div>
+          <span className="mb-1 block text-xs font-medium text-ink/50">Preço</span>
+          <PricingModeToggle value={pricingMode} onChange={setPricingMode} />
+        </div>
+        {pricingMode === 'FLAT' && (
+          <label className="w-28">
+            <span className="mb-1 block text-xs font-medium text-ink/50">Preço (R$)</span>
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0,00"
+              inputMode="decimal"
+              className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+            />
+          </label>
+        )}
         <button
           type="submit"
-          disabled={createItem.isPending || !name.trim() || parseReaisToCents(price) === null}
+          disabled={createItem.isPending || !name.trim() || (pricingMode === 'FLAT' && parseReaisToCents(price) === null)}
           className={`shrink-0 rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink hover:bg-signal/90 disabled:opacity-50 ${PRESS}`}
         >
           {createItem.isPending ? 'Adicionando…' : 'Adicionar'}
         </button>
       </form>
+      {pricingMode === 'BY_SIZE' && (
+        <p className="mt-2 text-xs text-ink/40">
+          Depois de adicionar, vamos abrir um popup pra você cadastrar os tamanhos e preços.
+        </p>
+      )}
       <datalist id="catalog-categories">
         {existingCategories.map((c) => (
           <option key={c} value={c} />
@@ -176,11 +184,40 @@ export function AiCatalogEditor() {
         enxergar essa organização, podendo ser referenciada nas instruções de um passo do fluxo
         (ex.: "ofereça algo da categoria Bebidas se o pedido não tiver nenhuma").
       </p>
+
+      <CatalogItemSizesModal item={sizesEditingItem} onClose={() => setSizesEditingItem(null)} />
     </div>
   );
 }
 
-function ItemRow({ item }: { item: AiCatalogItem }) {
+/** Two-way "por item"/"por tamanho" picker — a mode choice, not an on/off switch, so it's its own
+ * button pair rather than the boolean Toggle component used elsewhere (e.g. item.available). */
+function PricingModeToggle({
+  value,
+  onChange,
+}: {
+  value: AiCatalogPricingMode;
+  onChange: (mode: AiCatalogPricingMode) => void;
+}) {
+  return (
+    <div className="inline-flex rounded-full border border-line p-0.5">
+      {(['FLAT', 'BY_SIZE'] as const).map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => onChange(mode)}
+          className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+            value === mode ? 'bg-signal text-ink' : 'text-ink/50 hover:text-ink'
+          }`}
+        >
+          {mode === 'FLAT' ? 'Por item' : 'Por tamanho'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: () => void }) {
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description ?? '');
   const [category, setCategory] = useState(item.category ?? '');
@@ -247,13 +284,39 @@ function ItemRow({ item }: { item: AiCatalogItem }) {
         list="catalog-categories"
         className="w-28 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1"
       />
-      <input
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        onBlur={saveIfChanged}
-        inputMode="decimal"
-        className="w-20 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-right font-mono text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+      <PricingModeToggle
+        value={item.pricingMode}
+        onChange={(mode) => {
+          updateItem.mutate({ id: item.id, pricingMode: mode });
+          if (mode === 'BY_SIZE') onManageSizes();
+        }}
       />
+      {item.pricingMode === 'FLAT' ? (
+        <input
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          onBlur={saveIfChanged}
+          inputMode="decimal"
+          className="w-20 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-right font-mono text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+        />
+      ) : item.sizes.length > 0 ? (
+        <button
+          type="button"
+          onClick={onManageSizes}
+          className={`shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          title={item.sizes.map((s) => `${s.label} R$ ${formatReais(s.priceCents)}`).join(' · ')}
+        >
+          {item.sizes.map((s) => `${s.label} R$ ${formatReais(s.priceCents)}`).join(' · ')}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onManageSizes}
+          className={`shrink-0 rounded-full border border-stage-lost/40 bg-stage-lost/10 px-2.5 py-1 text-xs font-medium text-stage-lost hover:bg-stage-lost/20 ${PRESS_SM}`}
+        >
+          Sem tamanhos cadastrados
+        </button>
+      )}
       <Toggle
         checked={item.available}
         onChange={(available) => updateItem.mutate({ id: item.id, available })}
