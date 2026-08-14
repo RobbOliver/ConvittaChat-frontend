@@ -551,6 +551,13 @@ export function FlowCanvas() {
             zoomOnPinch
             fitView
             fitViewOptions={{ padding: 0.3 }}
+            // Default minZoom (0.5) can't shrink far enough to fit a long, mostly single-column
+            // chain of steps (e.g. a step-by-step data collection flow with little branching) into
+            // the canvas height — fitView silently stops at 0.5x and most of the flow ends up
+            // off-screen, which reads as "nodes are really far apart" even though row spacing itself
+            // never changed. Lowering the floor lets fitView (and manual zoom-out) actually reach
+            // whatever scale a tall flow needs.
+            minZoom={0.1}
             proOptions={{ hideAttribution: true }}
           >
             <Background color="#e4e4e9" gap={20} />
