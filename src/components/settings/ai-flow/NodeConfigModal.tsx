@@ -7,6 +7,7 @@ import type {
   ConditionOperator,
   ConditionRule,
   ExpressionConditionRule,
+  NotifySignal,
   WaitReplyNodeConfig,
 } from '../../../types';
 
@@ -81,6 +82,7 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
   const [waitAssignKind, setWaitAssignKind] = useState<WaitAssignKind>('NONE');
   const [waitAssignKey, setWaitAssignKey] = useState('');
   const [timeoutMinutes, setTimeoutMinutes] = useState('');
+  const [notify, setNotify] = useState<NotifySignal | 'NONE'>('NONE');
 
   useEffect(() => {
     if (!node) return;
@@ -92,8 +94,10 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
       rules?: (ConditionRule | ExpressionConditionRule)[];
       assign?: WaitReplyNodeConfig['assign'];
       timeoutMinutes?: number;
+      notify?: NotifySignal;
     };
     setInstructions(config.instructions ?? '');
+    setNotify(config.notify ?? 'NONE');
     setMessage(config.message ?? '');
     const mode = config.mode ?? 'FIELD';
     setConditionMode(mode);
@@ -119,25 +123,33 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
     const parsedTimeout = Number.parseInt(timeoutMinutes, 10);
     const config =
       node.type === 'AI_MESSAGE'
-        ? { instructions: instructions.trim() || undefined }
-        : node.type === 'END' || node.type === 'TEXT'
-          ? { message: message.trim() || undefined }
-          : node.type === 'CONDITION'
-            ? conditionMode === 'EXPRESSION'
-              ? {
-                  mode: 'EXPRESSION' as const,
-                  rules: expressionRules.filter((r) => r.expression.trim() && r.targetEdgeLabel.trim()),
-                }
-              : { mode: 'FIELD' as const, rules: rules.filter((r) => r.targetEdgeLabel.trim()) }
-            : node.type === 'WAIT_REPLY'
-              ? {
-                  assign:
-                    waitAssignKind === 'NONE' || !waitAssignKey
-                      ? undefined
-                      : { kind: waitAssignKind, key: waitAssignKey },
-                  timeoutMinutes: Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : undefined,
-                }
-              : {};
+        ? {
+            instructions: instructions.trim() || undefined,
+            notify: notify === 'NONE' ? undefined : notify,
+          }
+        : node.type === 'TEXT'
+          ? {
+              message: message.trim() || undefined,
+              notify: notify === 'NONE' ? undefined : notify,
+            }
+          : node.type === 'END'
+            ? { message: message.trim() || undefined }
+            : node.type === 'CONDITION'
+              ? conditionMode === 'EXPRESSION'
+                ? {
+                    mode: 'EXPRESSION' as const,
+                    rules: expressionRules.filter((r) => r.expression.trim() && r.targetEdgeLabel.trim()),
+                  }
+                : { mode: 'FIELD' as const, rules: rules.filter((r) => r.targetEdgeLabel.trim()) }
+              : node.type === 'WAIT_REPLY'
+                ? {
+                    assign:
+                      waitAssignKind === 'NONE' || !waitAssignKey
+                        ? undefined
+                        : { kind: waitAssignKind, key: waitAssignKey },
+                    timeoutMinutes: Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : undefined,
+                  }
+                : {};
     onSave(node.id, { label: trimmedLabel, config });
     onClose();
   }
@@ -184,6 +196,37 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
                 ? 'Instrução longa — considere dividir em mais de um passo pra IA ficar mais precisa.'
                 : 'Vale só pra este passo — as regras gerais (persona, horário, segurança) já valem sempre.'}
             </span>
+
+            <p className="mt-4 text-sm font-medium text-ink/70">
+              Avisar a equipe quando a resposta deste passo for enviada
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(['NONE', 'HUMAN_NEEDED', 'ORDER_READY'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setNotify(option)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${PRESS_SM} ${
+                    notify === option
+                      ? 'border-signal bg-signal/10 text-ink'
+                      : 'border-line bg-paper text-ink/60 hover:bg-mist'
+                  }`}
+                >
+                  {option === 'NONE'
+                    ? 'Nenhum aviso'
+                    : option === 'HUMAN_NEEDED'
+                      ? 'Precisa de atendente'
+                      : 'Pedido pronto pra preparar'}
+                </button>
+              ))}
+            </div>
+            <span className="mt-1 block text-xs text-ink/40">
+              {notify === 'HUMAN_NEEDED'
+                ? 'Toca um som e marca a conversa com um aviso no Inbox até alguém responder.'
+                : notify === 'ORDER_READY'
+                  ? 'Toca um som pra chamar atenção da equipe — sem marcar a conversa, é só um alerta pontual.'
+                  : 'Nenhum som/aviso especial quando este passo responder.'}
+            </span>
           </label>
         )}
 
@@ -212,8 +255,33 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
             />
             <span className="mt-1 block text-xs text-ink/40">
               Enviado exatamente como escrito, sem passar pela IA — depois segue direto pro próximo
-              passo ligado a este, sem esperar resposta do cliente.
+              passo ligado a este, sem esperar resposta do cliente. Deixe em branco pra usar este
+              passo só como um aviso silencioso (veja abaixo), sem mandar texto nenhum.
             </span>
+
+            <p className="mt-4 text-sm font-medium text-ink/70">
+              Avisar a equipe quando este passo for alcançado
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(['NONE', 'HUMAN_NEEDED', 'ORDER_READY'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setNotify(option)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${PRESS_SM} ${
+                    notify === option
+                      ? 'border-signal bg-signal/10 text-ink'
+                      : 'border-line bg-paper text-ink/60 hover:bg-mist'
+                  }`}
+                >
+                  {option === 'NONE'
+                    ? 'Nenhum aviso'
+                    : option === 'HUMAN_NEEDED'
+                      ? 'Precisa de atendente'
+                      : 'Pedido pronto pra preparar'}
+                </button>
+              ))}
+            </div>
           </label>
         )}
 

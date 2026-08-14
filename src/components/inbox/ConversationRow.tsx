@@ -45,7 +45,17 @@ export function ConversationRow({
         <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} tone="dark" />
         <span className="flex min-w-0 flex-1 items-start justify-between gap-2 pr-6">
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-white">{name}</span>
+            <span className="flex items-center gap-1.5">
+              <span className="truncate text-sm font-medium text-white">{name}</span>
+              {conversation.needsHuman && (
+                <span
+                  title="Um passo do fluxo pediu atendimento humano aqui"
+                  className="shrink-0 rounded-full bg-stage-lost px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+                >
+                  Atendente
+                </span>
+              )}
+            </span>
             {lastMessage && (
               <span className="mt-0.5 block truncate text-xs text-white/50">{lastMessage.content}</span>
             )}

@@ -92,6 +92,17 @@ export type AiFlowNodeType =
   | 'END'
   | 'WAIT_REPLY';
 
+/** `HUMAN_NEEDED` sets `ConversationSummary.needsHuman` (badge on the row, cleared once an agent
+ * replies); `ORDER_READY` is a one-off sound/toast with no persisted state. Fired the moment this
+ * AI_MESSAGE step's reply is actually sent, before the customer answers. */
+export type NotifySignal = 'HUMAN_NEEDED' | 'ORDER_READY';
+
+/** Free-shape config for an AI_MESSAGE node (see AiFlowNode.config). */
+export interface AiMessageNodeConfig {
+  instructions?: string;
+  notify?: NotifySignal;
+}
+
 export type ConditionOperator = 'isSet' | 'isEmpty' | 'equals' | 'notEquals';
 
 /** One rule inside a CONDITION node's config — evaluated in array order, first match wins. `field`
@@ -233,6 +244,10 @@ export interface ConversationSummary {
   aiEnabled: boolean;
   /** Free-text note (admin- or AI-maintained) of what's still needed to close this deal. */
   aiObjective: string | null;
+  /** Set by a flow's `notify: 'HUMAN_NEEDED'` step (see NodeConfigModal's AI_MESSAGE config) —
+   * cleared automatically the moment an agent sends anything in this conversation. Surfaced as a
+   * badge on the conversation row. */
+  needsHuman: boolean;
   createdAt: string;
   updatedAt: string;
 }
