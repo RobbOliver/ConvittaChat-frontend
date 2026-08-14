@@ -12,19 +12,30 @@ const DEPTH_SPACING = 170;
  * which side of a node any connection visually uses, so it works the same regardless of which
  * sides the admin actually connected by hand.
  *
- * A step's row is its LONGEST path from TRIGGER (bounded Bellman-Ford-style relaxation, safe on
- * cycles — a malformed loop just stops mattering once the pass cap is hit), not a plain BFS's
- * first-visit shortest distance. A shared step reached by several branches of different lengths
- * (e.g. one WAIT_REPLY node that three different upstream paths all funnel into) would, under
- * shortest-path BFS, get pinned to whichever branch reached it first — every other branch's edge
- * into it then has to jump backward/sideways across the canvas, which is exactly what looked
- * tangled before. Longest-path layering always places a step strictly below every one of its
- * predecessors, so every edge points downward.
+ * A step's row is its LONGEST path from TRIGGER along non-looping edges (Bellman-Ford-style
+ * relaxation), not a plain BFS's first-visit shortest distance. A shared step reached by several
+ * branches of different lengths (e.g. one WAIT_REPLY node that three different upstream paths all
+ * funnel into) would, under shortest-path BFS, get pinned to whichever branch reached it first —
+ * every other branch's edge into it then has to jump backward/sideways across the canvas, which is
+ * exactly what looked tangled before. Longest-path layering always places a step strictly below
+ * every one of its predecessors, so every edge points downward.
+ *
+ * "Non-looping" matters: a WAIT_REPLY-driven "ask again" loop (e.g. a "quer mais alguma coisa?"
+ * step whose "sim" edge points back to the question before it) is a completely normal, encouraged
+ * shape in this node system, not a malformed graph. Feeding a loop edge into the relaxation above
+ * would inflate the depth of that loop's own members (and everything downstream of them) by
+ * roughly one extra row per relaxation pass the loop gets caught in, pushing them absurdly far
+ * down — a real bug hit while designing an order-taking flow with exactly this kind of loop.
+ * `backEdges` (a standard DFS-from-TRIGGER classification: an edge into a node still on the DFS
+ * stack, i.e. one of its own ancestors, is a back/loop edge) excludes those from the relaxation
+ * entirely, so a step's row reflects its real distance from TRIGGER along the graph's *forward*
+ * structure — a loop's edge back to its own question just never draws a row change.
  *
  * Within a row, siblings are ordered by the barycenter (average x) of their already-placed
- * parents, not by array order — a child lands roughly under its parent(s) instead of wherever it
- * happened to appear in the saved node list, which is the standard crossing-reduction heuristic
- * behind most tree/DAG auto-layout tools.
+ * parents (looking at every incoming edge, loops included, since a looped-back step should still
+ * visually pull toward whatever points at it), not by array order — a child lands roughly under
+ * its parent(s) instead of wherever it happened to appear in the saved node list, the standard
+ * crossing-reduction heuristic behind most tree/DAG auto-layout tools.
  */
 export function autoLayoutPositions(
   nodes: Pick<AiFlowNode, 'id' | 'type'>[],
@@ -38,13 +49,16 @@ export function autoLayoutPositions(
     incoming.set(edge.targetId, list);
   }
 
-  const depth = new Map<string, number>();
   const trigger = nodes.find((n) => n.type === 'TRIGGER');
+  const backEdges = findBackEdges(realEdges, trigger?.id);
+  const forwardEdges = realEdges.filter((e) => !backEdges.has(e));
+
+  const depth = new Map<string, number>();
   if (trigger) {
     depth.set(trigger.id, 0);
     for (let pass = 0; pass < nodes.length; pass++) {
       let changed = false;
-      for (const edge of realEdges) {
+      for (const edge of forwardEdges) {
         const sourceDepth = depth.get(edge.sourceId);
         if (sourceDepth === undefined) continue;
         const candidate = sourceDepth + 1;
@@ -85,4 +99,47 @@ export function autoLayoutPositions(
     });
   }
   return positions;
+}
+
+/** Standard DFS back-edge classification: walking from `startId`, an edge that lands on a node
+ * still on the current DFS stack (one of its own ancestors in this walk) closes a cycle — that's a
+ * back/loop edge. Iterative (explicit stack), not recursive, so a large flow can't blow the call
+ * stack. Nodes unreachable from `startId` are simply never visited, which is fine here: their
+ * depth defaults to 0 regardless (see the caller), so no edge of theirs needs classifying. */
+function findBackEdges<E extends { sourceId: string; targetId: string }>(
+  edges: E[],
+  startId: string | undefined,
+): Set<E> {
+  const backEdges = new Set<E>();
+  if (!startId) return backEdges;
+
+  const outgoing = new Map<string, E[]>();
+  for (const edge of edges) {
+    const list = outgoing.get(edge.sourceId) ?? [];
+    list.push(edge);
+    outgoing.set(edge.sourceId, list);
+  }
+
+  const state = new Map<string, 1 | 2>(); // 1 = on the current DFS stack, 2 = fully explored
+  const stack: { id: string; nextEdgeIndex: number }[] = [{ id: startId, nextEdgeIndex: 0 }];
+  state.set(startId, 1);
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+    const out = outgoing.get(frame.id) ?? [];
+    if (frame.nextEdgeIndex >= out.length) {
+      state.set(frame.id, 2);
+      stack.pop();
+      continue;
+    }
+    const edge = out[frame.nextEdgeIndex];
+    frame.nextEdgeIndex++;
+    const targetState = state.get(edge.targetId);
+    if (targetState === 1) {
+      backEdges.add(edge);
+    } else if (targetState === undefined) {
+      state.set(edge.targetId, 1);
+      stack.push({ id: edge.targetId, nextEdgeIndex: 0 });
+    }
+  }
+  return backEdges;
 }
