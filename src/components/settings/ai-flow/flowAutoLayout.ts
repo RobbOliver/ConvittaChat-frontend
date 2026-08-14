@@ -1,7 +1,13 @@
 import type { AiFlowEdge, AiFlowNode } from '../../../types';
 
 const SIBLING_SPACING = 260;
-const DEPTH_SPACING = 170;
+// Node cards render ~70px tall (w-56, px-4 py-3, two text rows) — 170 left roughly 100px of dead
+// space between a card's bottom edge and the next row's top edge, which barely matters for a wide/
+// branchy flow but compounds badly for a long, mostly single-column chain of steps (e.g. a
+// step-by-step data collection flow): a 10-row chain was ending up ~1700px tall for no visual
+// benefit, forcing fitView to zoom out far more than the content actually needed. 120 still reads
+// as a clearly separate row (~50px gap) without wasting a third of every row on empty canvas.
+const DEPTH_SPACING = 120;
 
 /**
  * A brand new/default flow has every node at (0, 0) — nothing has ever been dragged into place
