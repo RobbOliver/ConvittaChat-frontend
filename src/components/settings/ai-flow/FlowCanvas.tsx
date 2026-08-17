@@ -25,6 +25,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useAiFlow,
   useAiFlowVersions,
+  useDeleteAiFlowVersion,
   useRestoreAiFlowVersion,
   useSaveAiFlowVersion,
   useUpdateAiFlow,
@@ -106,6 +107,7 @@ export function FlowCanvas() {
   const { data: versions, isLoading: versionsLoading } = useAiFlowVersions();
   const saveVersion = useSaveAiFlowVersion();
   const restoreVersion = useRestoreAiFlowVersion();
+  const deleteVersion = useDeleteAiFlowVersion();
 
   const [nodes, setNodes, applyNodesChange] = useNodesState<Node<FlowNodeData>>([]);
   const [edges, setEdges, applyEdgesChange] = useEdgesState<Edge>([]);
@@ -726,6 +728,7 @@ export function FlowCanvas() {
           isLoading={versionsLoading}
           isSaving={saveVersion.isPending}
           isRestoring={restoreVersion.isPending}
+          isDeleting={deleteVersion.isPending}
           onSave={(label) => saveVersion.mutate(label || undefined)}
           onRestore={(versionId) =>
             restoreVersion.mutate(versionId, {
@@ -737,6 +740,11 @@ export function FlowCanvas() {
                 applyFlowToCanvas(nextFlow);
                 showNotice('Versão restaurada.');
               },
+            })
+          }
+          onDelete={(versionId) =>
+            deleteVersion.mutate(versionId, {
+              onSuccess: () => showNotice('Versão excluída.'),
             })
           }
         />

@@ -68,3 +68,16 @@ export function useRestoreAiFlowVersion() {
     },
   });
 }
+
+/** Permanently removes one saved backup — never touches the live graph, only history. */
+export function useDeleteAiFlowVersion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (versionId: string) => {
+      await api.delete(`/ai-flow/versions/${versionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: AI_FLOW_VERSIONS_KEY });
+    },
+  });
+}

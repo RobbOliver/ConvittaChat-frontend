@@ -7,9 +7,13 @@ interface FlowVersionsPanelProps {
   isLoading: boolean;
   isSaving: boolean;
   isRestoring: boolean;
+  isDeleting: boolean;
   onSave: (label: string) => void;
   onRestore: (versionId: string) => void;
+  onDelete: (versionId: string) => void;
 }
+
+type PendingAction = { id: string; kind: 'restore' | 'delete' };
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -24,30 +28,35 @@ function formatDate(iso: string): string {
  * Collapsible drawer pinned next to FlowJsPanel — same tab/drawer idiom, so the two read as one
  * family of side panels rather than two different UI patterns. Lets the admin save a named backup
  * of the current LIVE graph (whatever's already saved server-side — this panel doesn't snapshot
- * unsaved canvas edits, only "Salvar fluxo" does that) and restore an earlier one. Restoring is a
- * real replace of the live graph, so it gets the same inline-confirm treatment as the canvas's own
- * "Limpar"/"Criar novo fluxo" buttons, one row at a time (only ever one row confirming at once).
+ * unsaved canvas edits, only "Salvar fluxo" does that), restore an earlier one, or permanently
+ * delete one. Restoring and deleting both get the same inline-confirm treatment as the canvas's
+ * own "Limpar"/"Criar novo fluxo" buttons — only one row's confirm box open at a time, tracked by
+ * which action it's for so restoring one version and deleting another can't be conflated.
  */
 export function FlowVersionsPanel({
   versions,
   isLoading,
   isSaving,
   isRestoring,
+  isDeleting,
   onSave,
   onRestore,
+  onDelete,
 }: FlowVersionsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [label, setLabel] = useState('');
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   function handleSave() {
     onSave(label.trim());
     setLabel('');
   }
 
-  function handleRestore(id: string) {
-    onRestore(id);
-    setConfirmingId(null);
+  function handleConfirm() {
+    if (!pending) return;
+    if (pending.kind === 'restore') onRestore(pending.id);
+    else onDelete(pending.id);
+    setPending(null);
   }
 
   return (
@@ -96,45 +105,76 @@ export function FlowVersionsPanel({
               <p className="text-xs text-ink/40">Nenhuma versão salva ainda.</p>
             )}
             <ul className="space-y-2">
-              {versions?.map((version) => (
-                <li key={version.id} className="rounded-lg border border-line px-3 py-2">
-                  <p className="text-sm font-medium text-ink">{version.label || 'Sem nome'}</p>
-                  <p className="mt-0.5 text-xs text-ink/50">
-                    {formatDate(version.createdAt)} · {version.nodeCount} passos, {version.edgeCount} ligações
-                  </p>
-                  {confirmingId !== version.id ? (
-                    <button
-                      type="button"
-                      disabled={isRestoring}
-                      onClick={() => setConfirmingId(version.id)}
-                      className={`mt-1.5 rounded-full border border-line px-3 py-1 text-xs font-medium text-ink/70 hover:bg-mist disabled:opacity-40 ${PRESS_SM}`}
-                    >
-                      Restaurar
-                    </button>
-                  ) : (
-                    <div className="mt-1.5 rounded-lg border border-signal/30 bg-signal/5 px-2 py-1.5">
-                      <p className="text-xs text-ink/70">Substituir o fluxo atual por essa versão?</p>
+              {versions?.map((version) => {
+                const isPendingHere = pending?.id === version.id;
+                return (
+                  <li key={version.id} className="rounded-lg border border-line px-3 py-2">
+                    <p className="text-sm font-medium text-ink">{version.label || 'Sem nome'}</p>
+                    <p className="mt-0.5 text-xs text-ink/50">
+                      {formatDate(version.createdAt)} · {version.nodeCount} passos, {version.edgeCount} ligações
+                    </p>
+                    {!isPendingHere ? (
                       <div className="mt-1.5 flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setConfirmingId(null)}
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+                          disabled={isRestoring || isDeleting}
+                          onClick={() => setPending({ id: version.id, kind: 'restore' })}
+                          className={`rounded-full border border-line px-3 py-1 text-xs font-medium text-ink/70 hover:bg-mist disabled:opacity-40 ${PRESS_SM}`}
                         >
-                          Cancelar
+                          Restaurar
                         </button>
                         <button
                           type="button"
-                          disabled={isRestoring}
-                          onClick={() => handleRestore(version.id)}
-                          className={`rounded-full bg-signal px-2.5 py-1 text-xs font-semibold text-ink disabled:opacity-40 ${PRESS_SM}`}
+                          disabled={isRestoring || isDeleting}
+                          onClick={() => setPending({ id: version.id, kind: 'delete' })}
+                          className={`rounded-full border border-stage-lost/30 px-3 py-1 text-xs font-medium text-stage-lost hover:bg-stage-lost/5 disabled:opacity-40 ${PRESS_SM}`}
                         >
-                          {isRestoring ? 'Restaurando…' : 'Confirmar'}
+                          Excluir
                         </button>
                       </div>
-                    </div>
-                  )}
-                </li>
-              ))}
+                    ) : (
+                      <div
+                        className={`mt-1.5 rounded-lg border px-2 py-1.5 ${
+                          pending.kind === 'delete'
+                            ? 'border-stage-lost/30 bg-stage-lost/5'
+                            : 'border-signal/30 bg-signal/5'
+                        }`}
+                      >
+                        <p className="text-xs text-ink/70">
+                          {pending.kind === 'delete'
+                            ? 'Excluir essa versão salva? Não dá pra desfazer.'
+                            : 'Substituir o fluxo atual por essa versão?'}
+                        </p>
+                        <div className="mt-1.5 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPending(null)}
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isRestoring || isDeleting}
+                            onClick={handleConfirm}
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-40 ${PRESS_SM} ${
+                              pending.kind === 'delete' ? 'bg-stage-lost text-white' : 'bg-signal text-ink'
+                            }`}
+                          >
+                            {pending.kind === 'delete'
+                              ? isDeleting
+                                ? 'Excluindo…'
+                                : 'Confirmar'
+                              : isRestoring
+                                ? 'Restaurando…'
+                                : 'Confirmar'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
