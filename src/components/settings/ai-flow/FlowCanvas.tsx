@@ -22,14 +22,21 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useAiFlow, useUpdateAiFlow } from '../../../hooks/useAiFlow';
+import {
+  useAiFlow,
+  useAiFlowVersions,
+  useRestoreAiFlowVersion,
+  useSaveAiFlowVersion,
+  useUpdateAiFlow,
+} from '../../../hooks/useAiFlow';
 import { PRESS_SM } from '../../../lib/interactions';
-import type { AiFlowNodeType } from '../../../types';
+import type { AiFlow, AiFlowNodeType } from '../../../types';
 import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
 import { FlowJsPanel } from './FlowJsPanel';
 import { parseFlowJs, serializeFlowAsJs } from './flowJsSerializer';
 import { FlowVariablesPanel } from './FlowVariablesPanel';
+import { FlowVersionsPanel } from './FlowVersionsPanel';
 import {
   AiMessageNode,
   ConditionNode,
@@ -96,6 +103,9 @@ function normalizeHandleId(id: string | null | undefined): string | undefined {
 export function FlowCanvas() {
   const { data: flow, isLoading, isError } = useAiFlow();
   const updateFlow = useUpdateAiFlow();
+  const { data: versions, isLoading: versionsLoading } = useAiFlowVersions();
+  const saveVersion = useSaveAiFlowVersion();
+  const restoreVersion = useRestoreAiFlowVersion();
 
   const [nodes, setNodes, applyNodesChange] = useNodesState<Node<FlowNodeData>>([]);
   const [edges, setEdges, applyEdgesChange] = useEdgesState<Edge>([]);
@@ -104,6 +114,8 @@ export function FlowCanvas() {
   const [isDirty, setIsDirty] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [seededFlowId, setSeededFlowId] = useState<string | null>(null);
+  const [confirmingClear, setConfirmingClear] = useState(false);
+  const [confirmingNewFlow, setConfirmingNewFlow] = useState(false);
   const reactFlowInstance = useRef<ReactFlowInstance<Node<FlowNodeData>, Edge> | null>(null);
   const history = useGraphHistory();
   const nodesRef = useRef(nodes);
@@ -115,18 +127,19 @@ export function FlowCanvas() {
     edgesRef.current = edges;
   }, [edges]);
 
-  // Seeds local editable state once per fetched flow id — after that, this component owns canvas
-  // state until "Salvar fluxo" (or the tab unmounts, which resets everything back to whatever the
-  // server has, same as discarding unsaved edits).
-  useEffect(() => {
-    if (!flow || flow.id === seededFlowId) return;
-    const allZero = flow.nodes.every((n) => n.positionX === 0 && n.positionY === 0);
+  // Shared by the initial-load effect below and by the "criar novo fluxo"/"limpar" handlers, which
+  // also need to replace local canvas state wholesale after the server confirms a save — same
+  // reasoning as handleApplyFlowJs: a saved AiFlow keeps the same `id` across edits (it's a 1-per-
+  // user row, never recreated), so the effect's own `flow.id === seededFlowId` guard wouldn't
+  // notice a same-id server update on its own.
+  function applyFlowToCanvas(nextFlow: AiFlow) {
+    const allZero = nextFlow.nodes.every((n) => n.positionX === 0 && n.positionY === 0);
     const positions = allZero
-      ? autoLayoutPositions(flow.nodes, flow.edges)
-      : Object.fromEntries(flow.nodes.map((n) => [n.id, { x: n.positionX, y: n.positionY }]));
+      ? autoLayoutPositions(nextFlow.nodes, nextFlow.edges)
+      : Object.fromEntries(nextFlow.nodes.map((n) => [n.id, { x: n.positionX, y: n.positionY }]));
 
     setNodes(
-      flow.nodes.map((n) => ({
+      nextFlow.nodes.map((n) => ({
         id: n.id,
         type: n.type,
         position: positions[n.id] ?? { x: 0, y: 0 },
@@ -134,7 +147,7 @@ export function FlowCanvas() {
       })),
     );
     setEdges(
-      flow.edges.map((e) => ({
+      nextFlow.edges.map((e) => ({
         id: e.id,
         source: e.sourceId,
         target: e.targetId,
@@ -149,11 +162,17 @@ export function FlowCanvas() {
         data: { routeLabel: e.routeLabel, isFallback: e.isFallback } satisfies EdgeData,
       })),
     );
-    setSeededFlowId(flow.id);
+    setSeededFlowId(nextFlow.id);
     setIsDirty(false);
-    // A freshly-loaded flow (or a different one) should never inherit undo history from whatever
-    // was open on this canvas before.
     history.clear();
+  }
+
+  // Seeds local editable state once per fetched flow id — after that, this component owns canvas
+  // state until "Salvar fluxo" (or the tab unmounts, which resets everything back to whatever the
+  // server has, same as discarding unsaved edits).
+  useEffect(() => {
+    if (!flow || flow.id === seededFlowId) return;
+    applyFlowToCanvas(flow);
   }, [flow, seededFlowId, setNodes, setEdges, history]);
 
   function showNotice(message: string) {
@@ -398,6 +417,80 @@ export function FlowCanvas() {
     );
   }
 
+  /** Both handlers below take effect immediately (unlike every other canvas edit, which waits for
+   * "Salvar fluxo") — a reset/clear that only stuck around locally could be lost as easily as it
+   * was clicked, defeating the point of pairing them with a real backup. The current LIVE (already
+   * saved) graph is snapshotted as a version first, so either action is always undoable via the
+   * Versões panel even though it bypasses the normal save button. */
+  function handleNewFlow() {
+    const triggerId = makeId();
+    const aiMessageId = makeId();
+    const endId = makeId();
+    saveVersion.mutate('Antes de criar novo fluxo', {
+      onSuccess: () => {
+        updateFlow.mutate(
+          {
+            nodes: [
+              { id: triggerId, type: 'TRIGGER', label: 'Início da conversa', positionX: 0, positionY: 0, config: {} },
+              { id: aiMessageId, type: 'AI_MESSAGE', label: 'Atendimento', positionX: 0, positionY: 0, config: {} },
+              { id: endId, type: 'END', label: 'Fim', positionX: 0, positionY: 0, config: {} },
+            ],
+            edges: [
+              {
+                id: makeId(),
+                sourceId: triggerId,
+                targetId: aiMessageId,
+                routeLabel: null,
+                isFallback: false,
+                sourceHandle: null,
+                targetHandle: null,
+              },
+              {
+                id: makeId(),
+                sourceId: aiMessageId,
+                targetId: endId,
+                routeLabel: null,
+                isFallback: false,
+                sourceHandle: null,
+                targetHandle: null,
+              },
+            ],
+          },
+          {
+            onSuccess: (nextFlow) => {
+              applyFlowToCanvas(nextFlow);
+              showNotice('Novo fluxo criado — o anterior foi salvo em Versões.');
+            },
+          },
+        );
+      },
+    });
+    setConfirmingNewFlow(false);
+  }
+
+  function handleClear() {
+    const triggerId = makeId();
+    saveVersion.mutate('Antes de limpar', {
+      onSuccess: () => {
+        updateFlow.mutate(
+          {
+            nodes: [
+              { id: triggerId, type: 'TRIGGER', label: 'Início da conversa', positionX: 0, positionY: 0, config: {} },
+            ],
+            edges: [],
+          },
+          {
+            onSuccess: (nextFlow) => {
+              applyFlowToCanvas(nextFlow);
+              showNotice('Fluxo limpo — o anterior foi salvo em Versões.');
+            },
+          },
+        );
+      },
+    });
+    setConfirmingClear(false);
+  }
+
   function handleUndo() {
     const snapshot = history.undo({ nodes: nodesRef.current, edges: edgesRef.current });
     if (!snapshot) return;
@@ -502,6 +595,20 @@ export function FlowCanvas() {
         >
           Auto-organizar
         </button>
+        <button
+          type="button"
+          onClick={() => setConfirmingNewFlow(true)}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+        >
+          Criar novo fluxo
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmingClear(true)}
+          className={`rounded-full border border-stage-lost/30 bg-paper px-3 py-1.5 text-xs font-medium text-stage-lost hover:bg-stage-lost/5 ${PRESS_SM}`}
+        >
+          Limpar
+        </button>
         <div className="ml-auto flex items-center gap-3">
           {updateFlow.isError && <span className="text-xs text-stage-lost">Não foi possível salvar.</span>}
           {!isDirty && !updateFlow.isPending && <span className="text-xs text-ink/40">Tudo salvo</span>}
@@ -517,6 +624,55 @@ export function FlowCanvas() {
       </div>
 
       {notice && <p className="mt-2 text-xs text-signal">{notice}</p>}
+      {confirmingNewFlow && (
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-mist/40 px-3 py-2">
+          <p className="text-xs text-ink/70">
+            Isso substitui o fluxo atual por um novo, em branco. Uma cópia do fluxo atual é salva em Versões antes.
+          </p>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirmingNewFlow(false)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={saveVersion.isPending || updateFlow.isPending}
+              onClick={handleNewFlow}
+              className={`rounded-full bg-signal px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40 ${PRESS_SM}`}
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      )}
+      {confirmingClear && (
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-stage-lost/30 bg-stage-lost/5 px-3 py-2">
+          <p className="text-xs text-ink/70">
+            Isso apaga todos os passos do fluxo atual, deixando só o início. Uma cópia do fluxo atual é salva em
+            Versões antes.
+          </p>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirmingClear(false)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={saveVersion.isPending || updateFlow.isPending}
+              onClick={handleClear}
+              className={`rounded-full bg-stage-lost px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40 ${PRESS_SM}`}
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      )}
       {flow.warnings.length > 0 && (
         <div className="mt-2 space-y-1 rounded-lg bg-signal/10 px-3 py-2">
           {flow.warnings.map((w) => (
@@ -565,6 +721,25 @@ export function FlowCanvas() {
           </ReactFlow>
         </div>
         <FlowJsPanel value={jsText} onApply={handleApplyFlowJs} />
+        <FlowVersionsPanel
+          versions={versions}
+          isLoading={versionsLoading}
+          isSaving={saveVersion.isPending}
+          isRestoring={restoreVersion.isPending}
+          onSave={(label) => saveVersion.mutate(label || undefined)}
+          onRestore={(versionId) =>
+            restoreVersion.mutate(versionId, {
+              // The AiFlow row keeps the same `id` across a restore (it's a 1-per-user row, never
+              // recreated) — the load-effect's `flow.id === seededFlowId` guard would otherwise
+              // treat this as "already seeded" and silently leave the canvas showing the stale
+              // pre-restore graph, same reasoning as handleNewFlow/handleClear above.
+              onSuccess: (nextFlow) => {
+                applyFlowToCanvas(nextFlow);
+                showNotice('Versão restaurada.');
+              },
+            })
+          }
+        />
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
         {LEGEND.map((item) => (

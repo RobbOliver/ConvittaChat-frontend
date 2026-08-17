@@ -176,6 +176,16 @@ export interface AiFlow {
   warnings: string[];
 }
 
+/** One saved backup of the flow graph — see GET /ai-flow/versions. Lightweight on purpose: no
+ * `graph` payload, just enough to recognize and pick a version to restore. */
+export interface AiFlowVersionSummary {
+  id: string;
+  label: string | null;
+  createdAt: string;
+  nodeCount: number;
+  edgeCount: number;
+}
+
 export interface Contact {
   id: string;
   whatsappJid: string;
