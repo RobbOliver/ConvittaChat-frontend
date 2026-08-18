@@ -83,6 +83,9 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
   const [waitAssignKey, setWaitAssignKey] = useState('');
   const [timeoutMinutes, setTimeoutMinutes] = useState('');
   const [notify, setNotify] = useState<NotifySignal | 'NONE'>('NONE');
+  const [autoRestart, setAutoRestart] = useState(true);
+  const [restartLockValue, setRestartLockValue] = useState('');
+  const [restartLockUnit, setRestartLockUnit] = useState<'MINUTES' | 'HOURS'>('HOURS');
 
   useEffect(() => {
     if (!node) return;
@@ -95,10 +98,24 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
       assign?: WaitReplyNodeConfig['assign'];
       timeoutMinutes?: number;
       notify?: NotifySignal;
+      autoRestart?: boolean;
+      restartLockMinutes?: number;
     };
     setInstructions(config.instructions ?? '');
     setNotify(config.notify ?? 'NONE');
     setMessage(config.message ?? '');
+    setAutoRestart(config.autoRestart !== false);
+    const lockMinutes = config.restartLockMinutes ?? 0;
+    if (lockMinutes > 0 && lockMinutes % 60 === 0) {
+      setRestartLockUnit('HOURS');
+      setRestartLockValue(String(lockMinutes / 60));
+    } else if (lockMinutes > 0) {
+      setRestartLockUnit('MINUTES');
+      setRestartLockValue(String(lockMinutes));
+    } else {
+      setRestartLockUnit('HOURS');
+      setRestartLockValue('');
+    }
     const mode = config.mode ?? 'FIELD';
     setConditionMode(mode);
     if (mode === 'EXPRESSION') {
@@ -133,7 +150,14 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
               notify: notify === 'NONE' ? undefined : notify,
             }
           : node.type === 'END'
-            ? { message: message.trim() || undefined }
+            ? {
+                message: message.trim() || undefined,
+                autoRestart,
+                restartLockMinutes:
+                  autoRestart && Number.isFinite(Number.parseInt(restartLockValue, 10)) && Number.parseInt(restartLockValue, 10) > 0
+                    ? Number.parseInt(restartLockValue, 10) * (restartLockUnit === 'HOURS' ? 60 : 1)
+                    : undefined,
+              }
             : node.type === 'CONDITION'
               ? conditionMode === 'EXPRESSION'
                 ? {
@@ -231,16 +255,69 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
         )}
 
         {node.type === 'END' && (
-          <label className="mt-4 block text-sm font-medium text-ink/70">
-            Mensagem de encerramento (opcional)
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Deixe em branco pra não enviar nada extra ao chegar aqui"
-              className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-signal"
-            />
-          </label>
+          <>
+            <label className="mt-4 block text-sm font-medium text-ink/70">
+              Mensagem de encerramento (opcional)
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Deixe em branco pra não enviar nada extra ao chegar aqui"
+                className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+              />
+            </label>
+
+            <p className="mt-4 text-sm font-medium text-ink/70">Quando o fluxo terminar aqui</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {([true, false] as const).map((option) => (
+                <button
+                  key={String(option)}
+                  type="button"
+                  onClick={() => setAutoRestart(option)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${PRESS_SM} ${
+                    autoRestart === option
+                      ? 'border-signal bg-signal/10 text-ink'
+                      : 'border-line bg-paper text-ink/60 hover:bg-mist'
+                  }`}
+                >
+                  {option ? 'Reinicia sozinho' : 'Fica encerrado'}
+                </button>
+              ))}
+            </div>
+            <span className="mt-1 block text-xs text-ink/40">
+              {autoRestart
+                ? 'A próxima mensagem do cliente começa o fluxo de novo, do início.'
+                : 'A conversa não recebe mais respostas automáticas depois disso, mesmo que o cliente escreva de novo — precisa de um atendente.'}
+            </span>
+
+            {autoRestart && (
+              <label className="mt-4 block text-sm font-medium text-ink/70">
+                Bloquear reentrada por um tempo (opcional)
+                <div className="mt-1 flex gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={restartLockValue}
+                    onChange={(e) => setRestartLockValue(e.target.value)}
+                    placeholder="Deixe em branco pra reiniciar na hora"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+                  />
+                  <select
+                    value={restartLockUnit}
+                    onChange={(e) => setRestartLockUnit(e.target.value as 'MINUTES' | 'HOURS')}
+                    className="rounded-lg border border-line px-2 py-2 text-sm text-ink outline-none focus:border-signal"
+                  >
+                    <option value="MINUTES">minutos</option>
+                    <option value="HOURS">horas</option>
+                  </select>
+                </div>
+                <span className="mt-1 block text-xs text-ink/40">
+                  Enquanto o tempo não passar, mensagens do cliente não recebem resposta automática
+                  — depois disso, a próxima mensagem reinicia o fluxo normalmente.
+                </span>
+              </label>
+            )}
+          </>
         )}
 
         {node.type === 'TEXT' && (
