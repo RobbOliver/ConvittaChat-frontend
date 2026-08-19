@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useContacts } from '../../hooks/useContacts';
 import { useStartConversation } from '../../hooks/useStartConversation';
 import { useStartConversationWithContact } from '../../hooks/useStartConversationWithContact';
@@ -8,6 +8,7 @@ import { contactDisplayName } from '../../lib/format';
 import { PRESS, PRESS_SM } from '../../lib/interactions';
 import type { ContactWithConversation } from '../../types';
 import { Avatar } from './Avatar';
+import { ScheduleMessagePanel } from './ScheduleMessagePanel';
 
 type PickerTab = 'chats' | 'groups';
 
@@ -16,21 +17,105 @@ interface Props {
 }
 
 export function NewChatButton({ onStarted }: Props) {
-  const [open, setOpen] = useState(false);
+  const [dialOpen, setDialOpen] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!dialOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setDialOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setDialOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [dialOpen]);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Nova conversa"
-        title="Nova conversa"
-        className={`absolute bottom-5 right-5 flex h-12 w-12 items-center justify-center rounded-full bg-signal text-ink shadow-lg shadow-ink/30 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${PRESS}`}
-      >
-        <PencilIcon />
-      </button>
-      {open && <NewChatModal onClose={() => setOpen(false)} onStarted={onStarted} />}
+      <div ref={containerRef} className="absolute bottom-5 right-5 flex flex-col items-center gap-3">
+        {dialOpen && (
+          <>
+            <DialOption
+              label="Agendar mensagem"
+              delayMs={40}
+              onClick={() => {
+                setDialOpen(false);
+                setScheduleOpen(true);
+              }}
+            >
+              <ClockIcon />
+            </DialOption>
+            <DialOption
+              label="Nova mensagem"
+              delayMs={0}
+              onClick={() => {
+                setDialOpen(false);
+                setNewChatOpen(true);
+              }}
+            >
+              <PencilIcon />
+            </DialOption>
+          </>
+        )}
+        <button
+          type="button"
+          onClick={() => setDialOpen((value) => !value)}
+          aria-label={dialOpen ? 'Fechar menu' : 'Nova mensagem'}
+          title={dialOpen ? 'Fechar menu' : 'Nova mensagem'}
+          className={`flex h-12 w-12 items-center justify-center rounded-full bg-signal text-ink shadow-lg shadow-ink/30 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${PRESS}`}
+        >
+          <span
+            className={`transition-transform duration-150 ${dialOpen ? 'rotate-45' : 'rotate-0'}`}
+          >
+            <PlusIcon />
+          </span>
+        </button>
+      </div>
+      {newChatOpen && <NewChatModal onClose={() => setNewChatOpen(false)} onStarted={onStarted} />}
+      {scheduleOpen && <ScheduleMessagePanel onClose={() => setScheduleOpen(false)} />}
     </>
+  );
+}
+
+function DialOption({
+  label,
+  delayMs,
+  onClick,
+  children,
+}: {
+  label: string;
+  delayMs: number;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setEntered(true), delayMs);
+    return () => clearTimeout(timer);
+  }, [delayMs]);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`flex h-10 w-10 items-center justify-center rounded-full bg-paper text-ink shadow-lg shadow-ink/30 transition-all duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${PRESS_SM} ${
+        entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -217,6 +302,23 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
         {!canStartNew && error && <p className="mt-3 border-t border-line pt-3 text-sm text-stage-lost">{error}</p>}
       </div>
     </div>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden>
+      <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+      <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M10 6.5V10l2.8 1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

@@ -348,3 +348,25 @@ export interface WhatsappSession {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ScheduledMessageMode = 'ONCE' | 'LOOP' | 'SPECIFIC_TIMES';
+export type ScheduledMessageStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+
+export interface ScheduledMessage {
+  id: string;
+  contactId: string;
+  text: string | null;
+  mediaMimeType: string | null;
+  mediaFileName: string | null;
+  mode: ScheduledMessageMode;
+  loopCount: number | null;
+  loopIntervalMinutes: number | null;
+  occurrences: string[] | null;
+  occurrencesSent: number;
+  nextSendAt: string | null;
+  status: ScheduledMessageStatus;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+  contact: { id: string; name: string | null; phoneNumber: string; avatarUrl: string | null; isGroup: boolean };
+}

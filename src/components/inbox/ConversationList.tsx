@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PRESS_SM } from '../../lib/interactions';
 import type { ContactTab, ConversationSummary, InboxSearchResults, InboxType } from '../../types';
@@ -5,6 +6,29 @@ import { ConversationRow } from './ConversationRow';
 import { NewChatButton } from './NewChatButton';
 import { SearchResults } from './SearchResults';
 import { TabBar } from './TabBar';
+
+/** Splits an already-sorted (most-recent-first) conversation list into "today" and "the rest",
+ * without re-sorting either group — order within each group stays whatever the caller passed in. */
+function splitByToday(conversations: ConversationSummary[]) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const today: ConversationSummary[] = [];
+  const others: ConversationSummary[] = [];
+  for (const conversation of conversations) {
+    const at = new Date(conversation.lastMessage?.createdAt ?? conversation.updatedAt);
+    (at >= startOfToday ? today : others).push(conversation);
+  }
+  return { today, others };
+}
+
+/** Milliseconds until the next local midnight — used to re-run the today/others split without a
+ * page refresh, since the boundary is purely a function of wall-clock time, not of any data
+ * change the socket/query layer would otherwise invalidate on. */
+function msUntilNextMidnight(): number {
+  const next = new Date();
+  next.setHours(24, 0, 0, 0);
+  return next.getTime() - Date.now();
+}
 
 const INBOX_TYPE_LABEL: Record<InboxType, string> = {
   SECTOR: 'Inbox por Setor',
@@ -49,6 +73,21 @@ export function ConversationList({
   onMoveConversation,
 }: Props) {
   const isSearchActive = searchValue.length > 0;
+  // Bumped once at each local midnight to force the split below to recompute — nothing else about
+  // this value matters, it's never read.
+  const [, setDayTick] = useState(0);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      timer = setTimeout(() => {
+        setDayTick((t) => t + 1);
+        scheduleNext();
+      }, msUntilNextMidnight());
+    };
+    scheduleNext();
+    return () => clearTimeout(timer);
+  }, []);
+  const { today, others } = splitByToday(conversations);
 
   return (
     <aside className="relative flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
@@ -118,23 +157,47 @@ export function ConversationList({
           onMoveConversation={onMoveConversation}
         />
       ) : (
-        <ul className="flex-1 overflow-y-auto px-2 pb-4">
-          {conversations.map((conversation) => (
-            <ConversationRow
-              key={conversation.id}
-              conversation={conversation}
-              tabs={tabs}
-              isSelected={conversation.id === selectedId}
-              onSelect={onSelect}
-              onMoveConversation={onMoveConversation}
-            />
-          ))}
-        </ul>
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
+          {today.length > 0 && (
+            <ul>
+              <ConversationGroupHeader label="Hoje" />
+              {today.map((conversation) => (
+                <ConversationRow
+                  key={conversation.id}
+                  conversation={conversation}
+                  tabs={tabs}
+                  isSelected={conversation.id === selectedId}
+                  onSelect={onSelect}
+                  onMoveConversation={onMoveConversation}
+                />
+              ))}
+            </ul>
+          )}
+          {others.length > 0 && (
+            <ul>
+              <ConversationGroupHeader label="Outros" />
+              {others.map((conversation) => (
+                <ConversationRow
+                  key={conversation.id}
+                  conversation={conversation}
+                  tabs={tabs}
+                  isSelected={conversation.id === selectedId}
+                  onSelect={onSelect}
+                  onMoveConversation={onMoveConversation}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       <NewChatButton onStarted={onSelect} />
     </aside>
   );
+}
+
+function ConversationGroupHeader({ label }: { label: string }) {
+  return <li className="px-3 pb-1.5 pt-3 text-[10px] font-semibold uppercase tracking-wide text-white/40">{label}</li>;
 }
 
 function SearchIcon() {
