@@ -1,4 +1,5 @@
 import { BaseEdge, type EdgeProps } from '@xyflow/react';
+import { EdgeRouteLabel } from './EdgeRouteLabel';
 
 interface FlowEdgeData {
   /** Perpendicular offset (px) applied to this edge's curve — computed in FlowCanvas.tsx from how
@@ -51,17 +52,9 @@ export function FlowEdge({
   const labelY = 0.125 * sourceY + 0.375 * cp1y + 0.375 * cp2y + 0.125 * targetY;
 
   return (
-    <BaseEdge
-      id={id}
-      path={path}
-      markerEnd={markerEnd}
-      markerStart={markerStart}
-      style={style}
-      label={label}
-      labelX={labelX}
-      labelY={labelY}
-      labelStyle={labelStyle}
-      labelBgStyle={labelBgStyle}
-    />
+    <>
+      <BaseEdge id={id} path={path} markerEnd={markerEnd} markerStart={markerStart} style={style} />
+      <EdgeRouteLabel x={labelX} y={labelY} label={label} labelStyle={labelStyle} labelBgStyle={labelBgStyle} />
+    </>
   );
 }
