@@ -461,7 +461,7 @@ export function NodeConfigModal({ node, outgoingEdgeLabels, onClose, onSave }: P
             <p className="mt-2 text-xs text-ink/40">
               {conditionMode === 'FIELD'
                 ? 'Regras (a primeira que bater decide). Ligue este passo aos próximos primeiro (arrastando um conector) e dê um rótulo a cada ligação — as regras abaixo apontam pra esses rótulos.'
-                : 'Cada linha é uma expressão (a primeira que der verdadeiro decide). Use $cp.NomeDoCampo$ para campos personalizados, $NomeDaVariavel$ para variáveis globais, e $horarioValido$/$neighborhoodConfirmed$ para os dois sinais do sistema. Trocar de "Por campo" para "Por expressão" (ou vice-versa) descarta as regras do outro modo ao aplicar.'}
+                : 'Cada linha é uma expressão (a primeira que der verdadeiro decide). Use $cp.NomeDoCampo$ para campos personalizados, $NomeDaVariavel$ para variáveis globais, e $horarioValido$/$neighborhoodConfirmed$/$horaAtualMinutos$ para os sinais do sistema — esse último é a hora atual em minutos desde a meia-noite (ex.: 8h = 480, 14h10 = 850), útil pra travar um passo a um horário do dia: $horaAtualMinutos$ >= 480 && $horaAtualMinutos$ <= 850. Trocar de "Por campo" para "Por expressão" (ou vice-versa) descarta as regras do outro modo ao aplicar.'}
             </p>
 
             {conditionMode === 'FIELD' && (
