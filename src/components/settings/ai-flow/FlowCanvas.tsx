@@ -34,6 +34,7 @@ import { PRESS_SM } from '../../../lib/interactions';
 import type { AiFlow, AiFlowNodeType } from '../../../types';
 import { EdgeConfigModal, type EditableEdge } from './EdgeConfigModal';
 import { autoLayoutPositions } from './flowAutoLayout';
+import { FlowEdge } from './FlowEdge';
 import { FlowJsPanel } from './FlowJsPanel';
 import { parseFlowJs, serializeFlowAsJs } from './flowJsSerializer';
 import { FlowVariablesPanel } from './FlowVariablesPanel';
@@ -62,7 +63,12 @@ const NODE_TYPES: NodeTypes = {
 
 const EDGE_TYPES: EdgeTypes = {
   selfLoop: SelfLoopEdge,
+  flow: FlowEdge,
 };
+
+// How far apart parallel edges between the same two nodes get pushed, in each direction — keeps
+// them visually distinct (readable as separate paths) without looking like unrelated connections.
+const PARALLEL_EDGE_OFFSET_STEP = 26;
 
 const LEGEND: { type: AiFlowNodeType; label: string; dot: string }[] = [
   { type: 'TRIGGER', label: 'Início', dot: 'bg-stage-new' },
@@ -551,6 +557,28 @@ export function FlowCanvas() {
     },
   }));
 
+  // Two edges sharing the exact same pair of nodes (a duplicate route, or a forward step plus its
+  // own "voltar"/loop-back edge) draw the exact same default bezier curve on top of each other —
+  // that's the one case where a curve can't just diverge on its own from differing endpoints, since
+  // the endpoints ARE the same. Every edge in such a pair gets a symmetric perpendicular offset
+  // (see FlowEdge.tsx) so the fan-out is visible instead of reading as one line; a pair's own order
+  // (which edge is "first") doesn't matter, only that they end up spread apart.
+  const pairEdgeIds = new Map<string, string[]>();
+  for (const e of edges) {
+    if (e.source === e.target) continue;
+    const key = [e.source, e.target].sort().join('::');
+    const siblings = pairEdgeIds.get(key) ?? [];
+    siblings.push(e.id);
+    pairEdgeIds.set(key, siblings);
+  }
+  const displayEdges: Edge[] = edges.map((e) => {
+    if (e.source === e.target) return e;
+    const siblings = pairEdgeIds.get([e.source, e.target].sort().join('::')) ?? [e.id];
+    const index = siblings.indexOf(e.id);
+    const offset = siblings.length > 1 ? PARALLEL_EDGE_OFFSET_STEP * (index - (siblings.length - 1) / 2) : 0;
+    return { ...e, type: 'flow', data: { ...e.data, offset } };
+  });
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -690,7 +718,7 @@ export function FlowCanvas() {
           <FlowVariablesPanel />
           <ReactFlow
             nodes={displayNodes}
-            edges={edges}
+            edges={displayEdges}
             nodeTypes={NODE_TYPES}
             edgeTypes={EDGE_TYPES}
             onNodesChange={onNodesChange}

@@ -14,7 +14,7 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
   },
   AI_MESSAGE: {
     border: 'border-signal',
-    bg: 'bg-signal/10',
+    bg: 'bg-signal-soft',
     text: 'text-signal',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
