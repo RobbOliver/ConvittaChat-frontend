@@ -16,7 +16,7 @@ const SIZE_CLASSES: Record<NonNullable<Props['size']>, string> = {
 
 const TONE_CLASSES: Record<NonNullable<Props['tone']>, string> = {
   dark: 'bg-white/10 text-white',
-  light: 'bg-mist text-ink',
+  light: 'bg-mist text-ink dark:bg-[#24252e] dark:text-[#ececed]',
 };
 
 export function Avatar({ name, avatarUrl, size = 'sm', tone = 'dark' }: Props) {

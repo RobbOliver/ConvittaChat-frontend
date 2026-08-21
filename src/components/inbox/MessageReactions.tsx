@@ -40,13 +40,13 @@ export function ReactButton({ align, onReact }: ReactButtonProps) {
         onClick={() => setOpen((value) => !value)}
         aria-label="Reagir à mensagem"
         title="Reagir"
-        className={`flex h-6 w-6 items-center justify-center rounded-full text-ink/30 hover:bg-mist hover:text-ink/70 ${PRESS_SM}`}
+        className={`flex h-6 w-6 items-center justify-center rounded-full text-ink/30 hover:bg-mist hover:text-ink/70 dark:text-[#ececed]/30 dark:hover:bg-[#24252e] dark:hover:text-[#ececed]/70 ${PRESS_SM}`}
       >
         <SmileIcon />
       </button>
       {open && (
         <div
-          className={`absolute bottom-full z-10 mb-1 flex gap-0.5 rounded-full border border-line bg-paper px-1.5 py-1 shadow-lg ${
+          className={`absolute bottom-full z-10 mb-1 flex gap-0.5 rounded-full border border-line bg-paper px-1.5 py-1 shadow-lg dark:border-[#34353f] dark:bg-[#1a1b21] ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >
@@ -58,7 +58,7 @@ export function ReactButton({ align, onReact }: ReactButtonProps) {
                 onReact(emoji);
                 setOpen(false);
               }}
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-base hover:bg-mist ${PRESS_SM}`}
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-base hover:bg-mist dark:hover:bg-[#24252e] ${PRESS_SM}`}
             >
               {emoji}
             </button>
@@ -95,11 +95,11 @@ export function ReactionPills({ reactions, onToggle }: ReactionPillsProps) {
           type="button"
           onClick={() => onToggle(mine ? '' : emoji)}
           className={`flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs ${
-            mine ? 'border-signal bg-signal/10' : 'border-line bg-white'
+            mine ? 'border-signal bg-signal/10' : 'border-line bg-white dark:border-[#34353f] dark:bg-[#24252e]'
           } ${PRESS_SM}`}
         >
           <span>{emoji}</span>
-          {count > 1 && <span className="text-ink/50">{count}</span>}
+          {count > 1 && <span className="text-ink/50 dark:text-[#ececed]/50">{count}</span>}
         </button>
       ))}
     </div>

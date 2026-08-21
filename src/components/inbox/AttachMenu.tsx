@@ -55,18 +55,18 @@ export function AttachMenu({ onSelectFile, disabled }: Props) {
         disabled={disabled}
         aria-label="Anexar arquivo"
         title="Anexar arquivo"
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 dark:text-[#ececed]/50 dark:hover:bg-[#24252e] dark:hover:text-[#ececed] ${PRESS_SM}`}
       >
         <ClipIcon />
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 mb-2 w-44 overflow-hidden rounded-xl border border-line bg-paper py-1 shadow-lg">
+        <div className="absolute bottom-full left-0 mb-2 w-44 overflow-hidden rounded-xl border border-line bg-paper py-1 shadow-lg dark:border-[#34353f] dark:bg-[#1a1b21]">
           {CATEGORIES.map((category) => (
             <button
               key={category.label}
               type="button"
               onClick={() => pickFile(category.accept)}
-              className={`block w-full px-3 py-2 text-left text-sm text-ink hover:bg-mist ${PRESS}`}
+              className={`block w-full px-3 py-2 text-left text-sm text-ink hover:bg-mist dark:text-[#ececed] dark:hover:bg-[#24252e] ${PRESS}`}
             >
               {category.label}
             </button>

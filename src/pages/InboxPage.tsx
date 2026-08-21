@@ -7,11 +7,13 @@ import { useConversations } from '../hooks/useConversations';
 import { useContactTabs, useCreateContactTab, useDeleteContactTab } from '../hooks/useContactTabs';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { useInboxTheme } from '../hooks/useInboxTheme';
 import { useMoveConversation } from '../hooks/useMoveConversation';
 import { useSearchConversations } from '../hooks/useSearchConversations';
 import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 
 export function InboxPage() {
+  const { theme, toggleTheme } = useInboxTheme();
   const { data: conversations, isLoading } = useConversations();
   const { data: currentUser } = useCurrentUser();
   const inboxType = currentUser?.inboxType ?? 'SECTOR';
@@ -84,8 +86,10 @@ export function InboxPage() {
   }
 
   return (
-    <div className="flex h-svh flex-col bg-paper text-ink md:flex-row">
-      <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col md:flex md:flex-none`}>
+    <div className={`flex h-svh flex-col bg-paper text-ink md:flex-row ${theme === 'dark' ? 'dark' : ''}`}>
+      <div
+        className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col md:flex md:flex-none dark:bg-[#1a1b21]`}
+      >
         {syncingSessions.size > 0 && (
           <div className="bg-signal/15 px-4 py-2 text-center">
             <p className="text-xs font-medium text-signal">
@@ -98,6 +102,8 @@ export function InboxPage() {
         )}
         <ConversationList
           inboxType={inboxType}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           conversations={visibleConversations}
           searchResults={searchResults}
           isSearching={searchQuery.length > 0 && isSearching}
@@ -130,7 +136,7 @@ export function InboxPage() {
             onOpenDetails={inboxType === 'SALES' ? openDetails : undefined}
           />
         ) : (
-          <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-ink/40">
+          <div className="flex flex-1 items-center justify-center bg-paper px-6 text-center text-sm text-ink/40 dark:bg-[#1a1b21] dark:text-[#ececed]/40">
             {isLoading
               ? 'Carregando conversas…'
               : 'Nenhuma conversa ainda. Assim que alguém escrever pro seu WhatsApp, ela aparece aqui.'}

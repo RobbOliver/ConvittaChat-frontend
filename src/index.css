@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Class-based dark mode, scoped to whatever subtree carries `.dark` (the Inbox page toggles it on
+ * its own root only) — never tied to the OS theme, and inert everywhere else in the app. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;

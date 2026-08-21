@@ -17,8 +17,8 @@ interface Props {
 
 function chipClasses(isActive: boolean, isDragOver: boolean) {
   if (isActive) return 'bg-signal text-ink';
-  if (isDragOver) return 'bg-signal-soft text-signal ring-2 ring-signal';
-  return 'bg-mist text-ink/55 hover:bg-line hover:text-ink';
+  if (isDragOver) return 'bg-signal-soft text-signal ring-2 ring-signal dark:bg-[#3a2f1f]';
+  return 'bg-mist text-ink/55 hover:bg-line hover:text-ink dark:bg-[#24252e] dark:text-[#ececed]/55 dark:hover:bg-[#2f3039] dark:hover:text-[#ececed]';
 }
 
 /** Small discreet unread-count pill — legible on both the plain grey chip and the amber "active"
@@ -103,7 +103,9 @@ export function TabBar({
             onClick={() => onDeleteTab(tab.id)}
             aria-label={`Excluir aba ${tab.name}`}
             className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 opacity-0 group-hover:opacity-100 ${PRESS_SM} ${
-              activeTabId === tab.id ? 'text-ink/50 hover:text-ink' : 'text-ink/35 hover:text-ink'
+              activeTabId === tab.id
+                ? 'text-ink/50 hover:text-ink'
+                : 'text-ink/35 hover:text-ink dark:text-[#ececed]/35 dark:hover:text-[#ececed]'
             }`}
           >
             <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden>
@@ -123,7 +125,7 @@ export function TabBar({
               if (!draftName.trim()) setCreating(false);
             }}
             placeholder="Nome da aba"
-            className="w-28 rounded-full bg-mist px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink/35 focus:bg-line/60"
+            className="w-28 rounded-full bg-mist px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink/35 focus:bg-line/60 dark:bg-[#24252e] dark:text-[#ececed] dark:placeholder:text-[#ececed]/35 dark:focus:bg-[#2f3039]"
           />
         </form>
       ) : (
@@ -131,7 +133,7 @@ export function TabBar({
           type="button"
           onClick={() => setCreating(true)}
           aria-label="Criar aba"
-          className={`shrink-0 rounded-full bg-mist px-2.5 py-1.5 text-xs font-semibold text-ink/50 hover:bg-line hover:text-ink ${PRESS}`}
+          className={`shrink-0 rounded-full bg-mist px-2.5 py-1.5 text-xs font-semibold text-ink/50 hover:bg-line hover:text-ink dark:bg-[#24252e] dark:text-[#ececed]/50 dark:hover:bg-[#2f3039] dark:hover:text-[#ececed] ${PRESS}`}
         >
           +
         </button>

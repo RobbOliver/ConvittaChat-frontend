@@ -39,14 +39,14 @@ export function ConversationRow({
         onDragStart={draggable ? handleDragStart : undefined}
         onClick={() => onSelect(conversation.id)}
         className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS} ${
-          isSelected ? 'bg-signal-soft' : 'hover:bg-mist'
+          isSelected ? 'bg-signal-soft dark:bg-[#3a2f1f]' : 'hover:bg-mist dark:hover:bg-[#24252e]'
         }`}
       >
         <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} tone="light" />
         <span className="flex min-w-0 flex-1 items-start justify-between gap-2 pr-6">
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <span className="truncate text-sm font-medium text-ink">{name}</span>
+              <span className="truncate text-sm font-medium text-ink dark:text-[#ececed]">{name}</span>
               {conversation.needsHuman && (
                 <span
                   title="Um passo do fluxo pediu atendimento humano aqui"
@@ -57,14 +57,16 @@ export function ConversationRow({
               )}
             </span>
             {lastMessage && (
-              <span className="mt-0.5 block truncate text-xs text-ink/45">{lastMessage.content}</span>
+              <span className="mt-0.5 block truncate text-xs text-ink/45 dark:text-[#ececed]/45">
+                {lastMessage.content}
+              </span>
             )}
           </span>
           <span className="flex shrink-0 flex-col items-end gap-1">
             {lastMessage && (
               <span
                 className={`font-mono text-[10px] ${
-                  conversation.unreadCount > 0 ? 'font-semibold text-signal' : 'text-ink/35'
+                  conversation.unreadCount > 0 ? 'font-semibold text-signal' : 'text-ink/35 dark:text-[#ececed]/35'
                 }`}
               >
                 {formatTime(lastMessage.createdAt)}

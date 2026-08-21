@@ -110,7 +110,7 @@ function DialOption({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`flex h-10 w-10 items-center justify-center rounded-full bg-paper text-ink shadow-lg shadow-ink/30 transition-all duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${PRESS_SM} ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full bg-paper text-ink shadow-lg shadow-ink/30 transition-all duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink dark:bg-[#24252e] dark:text-[#ececed] dark:shadow-black/40 ${PRESS_SM} ${
         entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
       }`}
     >
@@ -191,16 +191,16 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4" onClick={onClose}>
       <div
-        className="flex max-h-[34rem] w-full max-w-sm flex-col rounded-2xl bg-paper p-5 shadow-xl"
+        className="flex max-h-[34rem] w-full max-w-sm flex-col rounded-2xl bg-paper p-5 shadow-xl dark:bg-[#1a1b21]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-ink">Nova conversa</h2>
+          <h2 className="font-display text-lg font-semibold text-ink dark:text-[#ececed]">Nova conversa</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className={`rounded-full p-1 text-ink/40 hover:bg-mist hover:text-ink ${PRESS_SM}`}
+            className={`rounded-full p-1 text-ink/40 hover:bg-mist hover:text-ink dark:text-[#ececed]/40 dark:hover:bg-[#24252e] dark:hover:text-[#ececed] ${PRESS_SM}`}
           >
             <CloseIcon />
           </button>
@@ -211,15 +211,17 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nome ou número"
-          className="mt-3 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+          className="mt-3 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
         />
 
-        <div className="mt-3 flex rounded-full bg-mist p-1 text-sm font-medium">
+        <div className="mt-3 flex rounded-full bg-mist p-1 text-sm font-medium dark:bg-[#24252e]">
           <button
             type="button"
             onClick={() => setTab('chats')}
             className={`flex-1 rounded-full py-1.5 ${PRESS} ${
-              tab === 'chats' ? 'bg-ink text-white' : 'text-ink/50 hover:text-ink'
+              tab === 'chats'
+                ? 'bg-ink text-white dark:bg-white/10 dark:text-[#ececed]'
+                : 'text-ink/50 hover:text-ink dark:text-[#ececed]/50 dark:hover:text-[#ececed]'
             }`}
           >
             Conversas{chats.length > 0 ? ` (${chats.length})` : ''}
@@ -228,7 +230,9 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
             type="button"
             onClick={() => setTab('groups')}
             className={`flex-1 rounded-full py-1.5 ${PRESS} ${
-              tab === 'groups' ? 'bg-ink text-white' : 'text-ink/50 hover:text-ink'
+              tab === 'groups'
+                ? 'bg-ink text-white dark:bg-white/10 dark:text-[#ececed]'
+                : 'text-ink/50 hover:text-ink dark:text-[#ececed]/50 dark:hover:text-[#ececed]'
             }`}
           >
             Grupos{groups.length > 0 ? ` (${groups.length})` : ''}
@@ -236,9 +240,9 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
         </div>
 
         <div className="mt-2 flex-1 overflow-y-auto">
-          {isLoading && <p className="py-6 text-center text-sm text-ink/40">Carregando…</p>}
+          {isLoading && <p className="py-6 text-center text-sm text-ink/40 dark:text-[#ececed]/40">Carregando…</p>}
           {!isLoading && activeList.length === 0 && (
-            <p className="py-6 text-center text-sm text-ink/40">
+            <p className="py-6 text-center text-sm text-ink/40 dark:text-[#ececed]/40">
               {tab === 'chats' ? 'Nenhum contato encontrado.' : 'Nenhum grupo encontrado.'}
             </p>
           )}
@@ -252,12 +256,12 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
                       type="button"
                       onClick={() => selectContact(contact)}
                       disabled={startWithContact.isPending}
-                      className={`flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-mist disabled:opacity-60 ${PRESS}`}
+                      className={`flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-mist disabled:opacity-60 dark:hover:bg-[#24252e] ${PRESS}`}
                     >
                       <Avatar name={name} avatarUrl={contact.avatarUrl} tone="light" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-ink">{name}</span>
-                        <span className="block truncate font-mono text-xs text-ink/40">
+                        <span className="block truncate text-sm font-medium text-ink dark:text-[#ececed]">{name}</span>
+                        <span className="block truncate font-mono text-xs text-ink/40 dark:text-[#ececed]/40">
                           {!contact.isGroup ? contact.phoneNumber : contact.conversationId ? 'Conversa iniciada' : 'Ainda sem conversa'}
                         </span>
                       </span>
@@ -271,16 +275,16 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
 
         {canStartNew &&
           (connectedSessions.length === 0 ? (
-            <p className="mt-3 border-t border-line pt-3 text-xs text-ink/40">
+            <p className="mt-3 border-t border-line pt-3 text-xs text-ink/40 dark:border-[#34353f] dark:text-[#ececed]/40">
               Conecte um número do WhatsApp na Home para falar com um número novo.
             </p>
           ) : (
-            <form onSubmit={handleStartNew} className="mt-3 space-y-2 border-t border-line pt-3">
+            <form onSubmit={handleStartNew} className="mt-3 space-y-2 border-t border-line pt-3 dark:border-[#34353f]">
               {connectedSessions.length > 1 && (
                 <select
                   value={sessionId}
                   onChange={(event) => setSessionId(event.target.value)}
-                  className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+                  className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
                 >
                   {connectedSessions.map((session) => (
                     <option key={session.id} value={session.id}>
