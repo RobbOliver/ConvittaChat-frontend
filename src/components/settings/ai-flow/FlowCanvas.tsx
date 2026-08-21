@@ -21,7 +21,7 @@ import {
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
   useAiFlow,
@@ -734,7 +734,7 @@ export function FlowCanvas() {
       )}
 
       <div className="mt-3 flex h-[640px] items-stretch gap-2">
-        <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-mist/40 dark:border-[#34353f] dark:bg-[#15161b]">
+        <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-mist/40 dark:border-[#34353f] dark:bg-[#2b2c35]">
           <FlowVariablesPanel />
           <ReactFlow
             nodes={displayNodes}
@@ -766,8 +766,9 @@ export function FlowCanvas() {
             // whatever scale a tall flow needs.
             minZoom={0.1}
             proOptions={{ hideAttribution: true }}
+            style={theme === 'dark' ? ({ '--xy-background-color': '#2b2c35' } as CSSProperties) : undefined}
           >
-            <Background color={theme === 'dark' ? '#34353f' : '#e4e4e9'} gap={20} />
+            <Background color={theme === 'dark' ? '#42434e' : '#e4e4e9'} gap={20} />
             <Controls showInteractive={false} position="bottom-right" />
           </ReactFlow>
         </div>
