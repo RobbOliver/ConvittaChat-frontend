@@ -22,7 +22,14 @@ const SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left];
  * FlowCanvas, not by hiding handles here.
  */
 function SideHandles({ position }: { position: Position }) {
-  return <Handle type="source" position={position} id={position} className="!h-3 !w-3 !bg-ink/40" />;
+  return (
+    <Handle
+      type="source"
+      position={position}
+      id={position}
+      className="!h-3 !w-3 !bg-ink/40 dark:!bg-[#ececed]/40"
+    />
+  );
 }
 
 function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
@@ -43,8 +50,8 @@ function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
             e.stopPropagation();
             data.onDelete?.();
           }}
-          className={`nodrag nopan absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full border shadow-sm group-hover:flex ${
-            isEnd ? 'border-line bg-paper text-ink' : 'border-line bg-paper text-ink/60'
+          className={`nodrag nopan absolute -right-2 -top-2 hidden h-5 w-5 items-center justify-center rounded-full border shadow-sm group-hover:flex dark:border-[#34353f] dark:bg-[#1a1b21] ${
+            isEnd ? 'border-line bg-paper text-ink dark:text-[#ececed]' : 'border-line bg-paper text-ink/60 dark:text-[#ececed]/60'
           } hover:!bg-stage-lost-soft hover:text-stage-lost`}
         >
           <CloseIcon />
@@ -54,7 +61,10 @@ function FlowNodeCard({ data }: NodeProps & { data: FlowNodeData }) {
         {style.icon}
         {NODE_TYPE_LABEL[data.nodeType]}
       </div>
-      <p className={`mt-1.5 truncate text-sm font-semibold ${isEnd ? 'text-paper' : 'text-ink'}`} title={data.label}>
+      <p
+        className={`mt-1.5 truncate text-sm font-semibold ${isEnd ? 'text-paper' : 'text-ink dark:text-[#ececed]'}`}
+        title={data.label}
+      >
         {data.label}
       </p>
     </div>

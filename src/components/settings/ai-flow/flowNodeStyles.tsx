@@ -4,7 +4,7 @@ import type { AiFlowNodeType } from '../../../types';
 export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; text: string; icon: ReactNode }> = {
   TRIGGER: {
     border: 'border-stage-new',
-    bg: 'bg-stage-new-soft',
+    bg: 'bg-stage-new-soft dark:bg-[#1c2438]',
     text: 'text-stage-new',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
@@ -14,7 +14,7 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
   },
   AI_MESSAGE: {
     border: 'border-signal',
-    bg: 'bg-signal-soft',
+    bg: 'bg-signal-soft dark:bg-[#3a2f1f]',
     text: 'text-signal',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
@@ -28,9 +28,9 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
     ),
   },
   CONDITION: {
-    border: 'border-ink/30',
-    bg: 'bg-mist',
-    text: 'text-ink/70',
+    border: 'border-ink/30 dark:border-[#ececed]/25',
+    bg: 'bg-mist dark:bg-[#24252e]',
+    text: 'text-ink/70 dark:text-[#ececed]/70',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
         <circle cx="5" cy="5" r="1.8" stroke="currentColor" strokeWidth="1.4" />
@@ -42,7 +42,7 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
   },
   TEXT: {
     border: 'border-stage-won',
-    bg: 'bg-stage-won-soft',
+    bg: 'bg-stage-won-soft dark:bg-[#173129]',
     text: 'text-stage-won',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>
@@ -63,7 +63,7 @@ export const NODE_STYLES: Record<AiFlowNodeType, { border: string; bg: string; t
   },
   WAIT_REPLY: {
     border: 'border-stage-lost',
-    bg: 'bg-stage-lost-soft',
+    bg: 'bg-stage-lost-soft dark:bg-[#3a1f1f]',
     text: 'text-stage-lost',
     icon: (
       <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden>

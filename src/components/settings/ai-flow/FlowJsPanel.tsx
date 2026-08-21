@@ -56,19 +56,19 @@ export function FlowJsPanel({ value, onApply }: FlowJsPanelProps) {
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         aria-expanded={isOpen}
-        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist ${PRESS_SM}`}
+        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         style={{ writingMode: 'vertical-rl' }}
       >
         JS
       </button>
       <div
-        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 ${
+        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 dark:border-[#34353f] dark:bg-[#1a1b21] ${
           isOpen ? 'w-[420px]' : 'w-0'
         }`}
       >
         <div className="flex h-full w-[420px] flex-col p-3">
-          <h4 className="font-display text-sm font-semibold text-ink">Código do fluxo (JS)</h4>
-          <p className="mt-1 text-xs text-ink/50">
+          <h4 className="font-display text-sm font-semibold text-ink dark:text-[#ececed]">Código do fluxo (JS)</h4>
+          <p className="mt-1 text-xs text-ink/50 dark:text-[#ececed]/50">
             Copie pra explicar a lógica. Cole outro código aqui pra substituir este fluxo automaticamente.
           </p>
           <textarea
@@ -79,7 +79,7 @@ export function FlowJsPanel({ value, onApply }: FlowJsPanelProps) {
             }}
             onPaste={handlePaste}
             spellCheck={false}
-            className="mt-2 min-h-0 flex-1 resize-none rounded-lg border border-line bg-mist/30 p-2 font-mono text-[11px] leading-snug text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+            className="mt-2 min-h-0 flex-1 resize-none rounded-lg border border-line bg-mist/30 p-2 font-mono text-[11px] leading-snug text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#24252e]/40 dark:text-[#ececed]"
           />
           <div className="mt-2 flex items-center justify-between gap-2">
             <button

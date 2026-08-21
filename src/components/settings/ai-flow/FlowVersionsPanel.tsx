@@ -65,19 +65,19 @@ export function FlowVersionsPanel({
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         aria-expanded={isOpen}
-        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist ${PRESS_SM}`}
+        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         style={{ writingMode: 'vertical-rl' }}
       >
         Versões
       </button>
       <div
-        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 ${
+        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 dark:border-[#34353f] dark:bg-[#1a1b21] ${
           isOpen ? 'w-[340px]' : 'w-0'
         }`}
       >
         <div className="flex h-full w-[340px] flex-col p-3">
-          <h4 className="font-display text-sm font-semibold text-ink">Versões salvas</h4>
-          <p className="mt-1 text-xs text-ink/50">
+          <h4 className="font-display text-sm font-semibold text-ink dark:text-[#ececed]">Versões salvas</h4>
+          <p className="mt-1 text-xs text-ink/50 dark:text-[#ececed]/50">
             Guarda uma cópia do fluxo já salvo pra você poder voltar depois.
           </p>
 
@@ -87,7 +87,7 @@ export function FlowVersionsPanel({
               onChange={(event) => setLabel(event.target.value)}
               placeholder="Nome (opcional)"
               maxLength={80}
-              className="min-w-0 flex-1 rounded-lg border border-line bg-mist/30 px-2 py-1.5 text-xs text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+              className="min-w-0 flex-1 rounded-lg border border-line bg-mist/30 px-2 py-1.5 text-xs text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#24252e]/40 dark:text-[#ececed]"
             />
             <button
               type="button"
@@ -100,17 +100,17 @@ export function FlowVersionsPanel({
           </div>
 
           <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
-            {isLoading && <p className="text-xs text-ink/40">Carregando…</p>}
+            {isLoading && <p className="text-xs text-ink/40 dark:text-[#ececed]/40">Carregando…</p>}
             {!isLoading && versions?.length === 0 && (
-              <p className="text-xs text-ink/40">Nenhuma versão salva ainda.</p>
+              <p className="text-xs text-ink/40 dark:text-[#ececed]/40">Nenhuma versão salva ainda.</p>
             )}
             <ul className="space-y-2">
               {versions?.map((version) => {
                 const isPendingHere = pending?.id === version.id;
                 return (
-                  <li key={version.id} className="rounded-lg border border-line px-3 py-2">
-                    <p className="text-sm font-medium text-ink">{version.label || 'Sem nome'}</p>
-                    <p className="mt-0.5 text-xs text-ink/50">
+                  <li key={version.id} className="rounded-lg border border-line px-3 py-2 dark:border-[#34353f]">
+                    <p className="text-sm font-medium text-ink dark:text-[#ececed]">{version.label || 'Sem nome'}</p>
+                    <p className="mt-0.5 text-xs text-ink/50 dark:text-[#ececed]/50">
                       {formatDate(version.createdAt)} · {version.nodeCount} passos, {version.edgeCount} ligações
                     </p>
                     {!isPendingHere ? (
@@ -119,7 +119,7 @@ export function FlowVersionsPanel({
                           type="button"
                           disabled={isRestoring || isDeleting}
                           onClick={() => setPending({ id: version.id, kind: 'restore' })}
-                          className={`rounded-full border border-line px-3 py-1 text-xs font-medium text-ink/70 hover:bg-mist disabled:opacity-40 ${PRESS_SM}`}
+                          className={`rounded-full border border-line px-3 py-1 text-xs font-medium text-ink/70 hover:bg-mist disabled:opacity-40 dark:border-[#34353f] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
                         >
                           Restaurar
                         </button>
@@ -140,7 +140,7 @@ export function FlowVersionsPanel({
                             : 'border-signal/30 bg-signal/5'
                         }`}
                       >
-                        <p className="text-xs text-ink/70">
+                        <p className="text-xs text-ink/70 dark:text-[#ececed]/70">
                           {pending.kind === 'delete'
                             ? 'Excluir essa versão salva? Não dá pra desfazer.'
                             : 'Substituir o fluxo atual por essa versão?'}
@@ -149,7 +149,7 @@ export function FlowVersionsPanel({
                           <button
                             type="button"
                             onClick={() => setPending(null)}
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium text-ink/60 hover:bg-mist dark:text-[#ececed]/60 dark:hover:bg-[#24252e] ${PRESS_SM}`}
                           >
                             Cancelar
                           </button>

@@ -40,26 +40,26 @@ export function FlowVariablesPanel() {
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         aria-expanded={isOpen}
-        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist ${PRESS_SM}`}
+        className={`shrink-0 rounded-r-lg border border-line bg-paper px-2 py-3 text-xs font-medium text-ink/70 shadow-sm hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         style={{ writingMode: 'vertical-rl' }}
       >
         Variáveis
       </button>
       <div
-        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 ${
+        className={`overflow-hidden rounded-r-xl border border-l-0 border-line bg-paper shadow-lg transition-[width] duration-200 dark:border-[#34353f] dark:bg-[#1a1b21] ${
           isOpen ? 'w-72' : 'w-0'
         }`}
       >
         <div className="w-72 p-4">
-          <h4 className="font-display text-sm font-semibold text-ink">Variáveis</h4>
-          <p className="mt-1 text-xs text-ink/50">
+          <h4 className="font-display text-sm font-semibold text-ink dark:text-[#ececed]">Variáveis</h4>
+          <p className="mt-1 text-xs text-ink/50 dark:text-[#ececed]/50">
             Memória de trabalho do fluxo — use <code>$NomeDaVariavel$</code> em condições por
             expressão.
           </p>
 
-          {isLoading && <p className="mt-3 text-sm text-ink/40">Carregando…</p>}
+          {isLoading && <p className="mt-3 text-sm text-ink/40 dark:text-[#ececed]/40">Carregando…</p>}
           {!isLoading && variables && variables.length === 0 && (
-            <p className="mt-3 text-sm text-ink/40">Nenhuma variável cadastrada ainda.</p>
+            <p className="mt-3 text-sm text-ink/40 dark:text-[#ececed]/40">Nenhuma variável cadastrada ainda.</p>
           )}
           {!isLoading && variables && variables.length > 0 && (
             <ul className="mt-3 space-y-2">
@@ -74,7 +74,7 @@ export function FlowVariablesPanel() {
               value={draftKey}
               onChange={(event) => setDraftKey(event.target.value)}
               placeholder="Nova variável"
-              className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+              className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
             />
             <button
               type="submit"
@@ -108,18 +108,18 @@ function VariableRow({ variable }: { variable: AiFlowVariable }) {
   }
 
   return (
-    <li className="flex items-center gap-2 rounded-lg border border-line bg-paper px-2.5 py-1.5">
+    <li className="flex items-center gap-2 rounded-lg border border-line bg-paper px-2.5 py-1.5 dark:border-[#34353f] dark:bg-[#1a1b21]">
       <input
         value={key}
         onChange={(event) => setKey(event.target.value)}
         onBlur={handleBlur}
-        className="min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+        className="min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed] dark:focus:border-[#34353f]"
       />
       <button
         type="button"
         onClick={() => deleteVariable.mutate(variable.id)}
         aria-label={`Remover variável ${variable.key}`}
-        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost ${PRESS_SM}`}
+        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost dark:text-[#ececed]/30 ${PRESS_SM}`}
       >
         <CloseIcon />
       </button>

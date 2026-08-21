@@ -22,6 +22,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '../../../contexts/ThemeContext';
 import {
   useAiFlow,
   useAiFlowVersions,
@@ -108,6 +109,7 @@ function normalizeHandleId(id: string | null | undefined): string | undefined {
  * builder), double-click an edge to label it. Nothing is sent to the server until "Salvar fluxo".
  */
 export function FlowCanvas() {
+  const { theme } = useTheme();
   const { data: flow, isLoading, isError } = useAiFlow();
   const updateFlow = useUpdateAiFlow();
   const { data: versions, isLoading: versionsLoading } = useAiFlowVersions();
@@ -539,7 +541,11 @@ export function FlowCanvas() {
   });
 
   if (isLoading) {
-    return <div className="flex h-[640px] items-center justify-center text-sm text-ink/40">Carregando fluxo…</div>;
+    return (
+      <div className="flex h-[640px] items-center justify-center text-sm text-ink/40 dark:text-[#ececed]/40">
+        Carregando fluxo…
+      </div>
+    );
   }
   if (isError || !flow) {
     return (
@@ -571,12 +577,24 @@ export function FlowCanvas() {
     siblings.push(e.id);
     pairEdgeIds.set(key, siblings);
   }
+  // Route-label chips are drawn via inline styles (EdgeRouteLabel), which don't pick up Tailwind's
+  // `dark:` variant — reapplied here, every render, so a theme toggle repaints already-loaded edges
+  // instead of only the ones loaded after the switch.
+  const labelColors =
+    theme === 'dark' ? { fill: '#ececed', fontSize: 11 } : { fill: '#14161f', fontSize: 11 };
+  const labelBg = theme === 'dark' ? { fill: '#24252e' } : { fill: '#ffffff' };
   const displayEdges: Edge[] = edges.map((e) => {
-    if (e.source === e.target) return e;
+    if (e.source === e.target) return { ...e, labelStyle: labelColors, labelBgStyle: labelBg };
     const siblings = pairEdgeIds.get([e.source, e.target].sort().join('::')) ?? [e.id];
     const index = siblings.indexOf(e.id);
     const offset = siblings.length > 1 ? PARALLEL_EDGE_OFFSET_STEP * (index - (siblings.length - 1) / 2) : 0;
-    return { ...e, type: 'flow', data: { ...e.data, offset } };
+    return {
+      ...e,
+      type: 'flow',
+      labelStyle: labelColors,
+      labelBgStyle: labelBg,
+      data: { ...e.data, offset },
+    };
   });
 
   return (
@@ -585,35 +603,35 @@ export function FlowCanvas() {
         <button
           type="button"
           onClick={() => handleAddNode('AI_MESSAGE')}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + Mensagem de IA
         </button>
         <button
           type="button"
           onClick={() => handleAddNode('CONDITION')}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + Condição
         </button>
         <button
           type="button"
           onClick={() => handleAddNode('TEXT')}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + Texto
         </button>
         <button
           type="button"
           onClick={() => handleAddNode('WAIT_REPLY')}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + Resposta do cliente
         </button>
         <button
           type="button"
           onClick={() => handleAddNode('END')}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + Fim
         </button>
@@ -621,27 +639,29 @@ export function FlowCanvas() {
           type="button"
           onClick={handleAutoLayout}
           title="Reorganiza automaticamente a posição de todos os passos"
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           Auto-organizar
         </button>
         <button
           type="button"
           onClick={() => setConfirmingNewFlow(true)}
-          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           Criar novo fluxo
         </button>
         <button
           type="button"
           onClick={() => setConfirmingClear(true)}
-          className={`rounded-full border border-stage-lost/30 bg-paper px-3 py-1.5 text-xs font-medium text-stage-lost hover:bg-stage-lost/5 ${PRESS_SM}`}
+          className={`rounded-full border border-stage-lost/30 bg-paper px-3 py-1.5 text-xs font-medium text-stage-lost hover:bg-stage-lost/5 dark:bg-[#1a1b21] ${PRESS_SM}`}
         >
           Limpar
         </button>
         <div className="ml-auto flex items-center gap-3">
           {updateFlow.isError && <span className="text-xs text-stage-lost">Não foi possível salvar.</span>}
-          {!isDirty && !updateFlow.isPending && <span className="text-xs text-ink/40">Tudo salvo</span>}
+          {!isDirty && !updateFlow.isPending && (
+            <span className="text-xs text-ink/40 dark:text-[#ececed]/40">Tudo salvo</span>
+          )}
           <button
             type="button"
             disabled={!isDirty || updateFlow.isPending}
@@ -655,15 +675,15 @@ export function FlowCanvas() {
 
       {notice && <p className="mt-2 text-xs text-signal">{notice}</p>}
       {confirmingNewFlow && (
-        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-mist/40 px-3 py-2">
-          <p className="text-xs text-ink/70">
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-mist/40 px-3 py-2 dark:border-[#34353f] dark:bg-[#24252e]/40">
+          <p className="text-xs text-ink/70 dark:text-[#ececed]/70">
             Isso substitui o fluxo atual por um novo, em branco. Uma cópia do fluxo atual é salva em Versões antes.
           </p>
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
               onClick={() => setConfirmingNewFlow(false)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist dark:text-[#ececed]/60 dark:hover:bg-[#24252e] ${PRESS_SM}`}
             >
               Cancelar
             </button>
@@ -680,7 +700,7 @@ export function FlowCanvas() {
       )}
       {confirmingClear && (
         <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-stage-lost/30 bg-stage-lost/5 px-3 py-2">
-          <p className="text-xs text-ink/70">
+          <p className="text-xs text-ink/70 dark:text-[#ececed]/70">
             Isso apaga todos os passos do fluxo atual, deixando só o início. Uma cópia do fluxo atual é salva em
             Versões antes.
           </p>
@@ -688,7 +708,7 @@ export function FlowCanvas() {
             <button
               type="button"
               onClick={() => setConfirmingClear(false)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-mist dark:text-[#ececed]/60 dark:hover:bg-[#24252e] ${PRESS_SM}`}
             >
               Cancelar
             </button>
@@ -714,7 +734,7 @@ export function FlowCanvas() {
       )}
 
       <div className="mt-3 flex h-[640px] items-stretch gap-2">
-        <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-mist/40">
+        <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-mist/40 dark:border-[#34353f] dark:bg-[#15161b]">
           <FlowVariablesPanel />
           <ReactFlow
             nodes={displayNodes}
@@ -732,6 +752,7 @@ export function FlowCanvas() {
               reactFlowInstance.current = instance;
             }}
             deleteKeyCode={['Backspace', 'Delete']}
+            colorMode={theme}
             panOnScroll
             zoomOnScroll={false}
             zoomOnPinch
@@ -746,7 +767,7 @@ export function FlowCanvas() {
             minZoom={0.1}
             proOptions={{ hideAttribution: true }}
           >
-            <Background color="#e4e4e9" gap={20} />
+            <Background color={theme === 'dark' ? '#34353f' : '#e4e4e9'} gap={20} />
             <Controls showInteractive={false} position="bottom-right" />
           </ReactFlow>
         </div>
@@ -779,7 +800,7 @@ export function FlowCanvas() {
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
         {LEGEND.map((item) => (
-          <span key={item.type} className="flex items-center gap-1.5 text-xs text-ink/50">
+          <span key={item.type} className="flex items-center gap-1.5 text-xs text-ink/50 dark:text-[#ececed]/50">
             <span className={`h-2 w-2 rounded-full ${item.dot}`} />
             {item.label}
           </span>
