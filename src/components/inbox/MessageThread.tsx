@@ -142,14 +142,14 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
   }
 
   return (
-    <section className="flex h-full min-w-0 flex-1 flex-col bg-paper">
-      <div className="flex items-center gap-3 border-b border-line px-4 py-4 sm:px-5">
+    <section className="flex h-full min-w-0 flex-1 flex-col bg-[#efeae2]">
+      <div className="flex items-center gap-3 bg-[#f0f2f5] px-4 py-2.5 sm:px-5">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
             aria-label="Voltar para a lista de conversas"
-            className={`-ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 md:hidden ${PRESS_SM}`}
+            className={`-ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#54656f] hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 md:hidden ${PRESS_SM}`}
           >
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
               <path
@@ -166,12 +166,12 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
           <button
             type="button"
             onClick={onOpenDetails}
-            className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left hover:bg-mist/60 ${PRESS}`}
+            className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 text-left hover:bg-black/[0.03] ${PRESS}`}
           >
             <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
             <div className="min-w-0 flex-1">
-              <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
-              <p className="font-mono text-xs text-ink/40">
+              <h2 className="truncate text-[16px] font-medium text-[#111b21]">{name}</h2>
+              <p className="truncate text-[13px] text-[#667781]">
                 {conversation.contact.phoneNumber} · via {conversation.session.label}
               </p>
             </div>
@@ -180,8 +180,8 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
           <>
             <Avatar name={name} avatarUrl={conversation.contact.avatarUrl} size="md" tone="light" />
             <div className="min-w-0 flex-1">
-              <h2 className="truncate font-display text-base font-semibold text-ink">{name}</h2>
-              <p className="font-mono text-xs text-ink/40">
+              <h2 className="truncate text-[16px] font-medium text-[#111b21]">{name}</h2>
+              <p className="truncate text-[13px] text-[#667781]">
                 {conversation.contact.phoneNumber} · via {conversation.session.label}
               </p>
             </div>
@@ -189,7 +189,14 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
         )}
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto bg-mist/40 px-4 py-5 sm:px-5">
+      <div
+        className="flex-1 space-y-3 overflow-y-auto px-4 py-5 sm:px-5"
+        style={{
+          backgroundColor: '#efeae2',
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='%23d9d3c7' fill-opacity='0.35'%3E%3Ccircle cx='12' cy='12' r='1.6'/%3E%3Ccircle cx='58' cy='30' r='1.6'/%3E%3Ccircle cx='34' cy='58' r='1.6'/%3E%3Ccircle cx='82' cy='72' r='1.6'/%3E%3Ccircle cx='6' cy='84' r='1.6'/%3E%3Ccircle cx='90' cy='10' r='1.6'/%3E%3C/g%3E%3C/svg%3E\")",
+        }}
+      >
         {conversation.messages.map((message, index) => {
           const isOutbound = message.direction === 'OUTBOUND';
           const tone = isOutbound ? 'outbound' : 'inbound';
@@ -204,7 +211,10 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
                 <div className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                   {showSenderTag && message.sender && <GroupSenderTag sender={message.sender} compact />}
                   <MediaAttachment message={message} tone={tone} onOpen={setLightboxTarget} />
-                  <span className="mt-1 font-mono text-[10px] text-ink/35">{formatTime(message.createdAt)}</span>
+                  <span className="mt-1 flex items-center gap-1 text-[11px] text-[#667781]">
+                    {formatTime(message.createdAt)}
+                    {isOutbound && <MessageTicks status={message.status} />}
+                  </span>
                   <ReactionPills
                     reactions={message.reactions ?? []}
                     onToggle={(emoji) => handleReact(message.id, emoji)}
@@ -222,9 +232,10 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
             <div key={message.id} className={`flex items-center gap-0.5 ${isOutbound ? 'flex-row-reverse' : ''}`}>
               <div className={`flex min-w-0 flex-1 flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`min-w-[96px] max-w-[85%] rounded-2xl text-sm leading-relaxed shadow-sm sm:max-w-[70%] ${
-                    isOutbound ? 'rounded-br-sm bg-ink text-white' : 'rounded-bl-sm bg-white text-ink'
+                  className={`min-w-[96px] max-w-[85%] rounded-lg text-[14.2px] leading-relaxed sm:max-w-[70%] ${
+                    isOutbound ? 'rounded-tr-none bg-[#d9fdd3] text-[#111b21]' : 'rounded-tl-none bg-white text-[#111b21]'
                   }`}
+                  style={{ boxShadow: '0 1px 0.5px rgba(11,20,26,0.13)' }}
                 >
                   {showSenderTag && message.sender && <GroupSenderTag sender={message.sender} />}
                   {message.mediaType && (
@@ -232,25 +243,20 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
                       <MediaAttachment message={message} tone={tone} onOpen={setLightboxTarget} />
                     </div>
                   )}
-                  <div className="px-3.5 py-2.5">
+                  <div className="px-2.5 py-[6px]">
                     {message.content && (
                       <p className="whitespace-pre-wrap">{formatMessageText(message.content)}</p>
                     )}
                     <p
-                      className={`flex items-center gap-1.5 font-mono text-[10px] ${message.content ? 'mt-1' : ''} ${
-                        isOutbound ? 'text-white/45' : 'text-ink/35'
-                      }`}
+                      className={`flex items-center justify-end gap-1 text-[11px] text-[#667781] ${message.content ? 'mt-0.5' : ''}`}
                     >
                       {message.isAiGenerated && (
-                        <span
-                          className={`rounded-full px-1.5 py-px font-sans text-[9px] font-semibold uppercase tracking-wide ${
-                            isOutbound ? 'bg-white/15 text-white/70' : 'bg-mist text-ink/40'
-                          }`}
-                        >
+                        <span className="mr-auto rounded-full bg-[#00a884]/10 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-[#00a884]">
                           IA
                         </span>
                       )}
                       {formatTime(message.createdAt)}
+                      {isOutbound && <MessageTicks status={message.status} />}
                     </p>
                   </div>
                 </div>
@@ -269,15 +275,15 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
         <div ref={bottomRef} />
       </div>
 
-      <form className="border-t border-line bg-paper p-3 sm:p-3.5" onSubmit={handleSubmit}>
+      <form className="bg-[#f0f2f5] p-3 sm:p-3.5" onSubmit={handleSubmit}>
         {!canSend && (
-          <p className="mb-2 text-center text-xs text-stage-lost">
+          <p className="mb-2 text-center text-xs text-[#ea4335]">
             {conversation.session.label} está desconectado — reconecte na Home para responder.
           </p>
         )}
-        {sendMedia.isPending && <p className="mb-2 text-center text-xs text-ink/40">Enviando arquivo…</p>}
+        {sendMedia.isPending && <p className="mb-2 text-center text-xs text-[#667781]">Enviando arquivo…</p>}
         {pendingAttachment && (
-          <div className="mb-2 flex items-center gap-3 rounded-xl border border-line bg-mist/40 p-2">
+          <div className="mb-2 flex items-center gap-3 rounded-xl border border-[#e9edef] bg-white p-2">
             {pendingAttachment.previewUrl ? (
               <img
                 src={pendingAttachment.previewUrl}
@@ -285,16 +291,16 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
                 className="h-12 w-12 shrink-0 rounded-lg object-cover"
               />
             ) : (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-mist text-ink/40">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#f0f2f5] text-[#667781]">
                 <FileIcon />
               </div>
             )}
-            <span className="min-w-0 flex-1 truncate text-xs text-ink/60">{pendingAttachment.file.name}</span>
+            <span className="min-w-0 flex-1 truncate text-xs text-[#667781]">{pendingAttachment.file.name}</span>
             <button
               type="button"
               onClick={() => setPendingAttachment(null)}
               aria-label="Remover anexo"
-              className={`shrink-0 rounded-full p-1 text-ink/40 hover:bg-mist hover:text-ink ${PRESS_SM}`}
+              className={`shrink-0 rounded-full p-1 text-[#667781] hover:bg-[#f0f2f5] hover:text-[#111b21] ${PRESS_SM}`}
             >
               <CloseIcon />
             </button>
@@ -309,7 +315,7 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
               disabled={!canSend}
               aria-label="Cobrar via Pix"
               title="Cobrar via Pix"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-mist hover:text-ink disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#54656f] hover:bg-black/5 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 ${PRESS_SM}`}
             >
               <PixIcon />
             </button>
@@ -323,14 +329,20 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
             onPaste={handlePaste}
             placeholder={pendingAttachment ? 'Digite uma legenda (opcional)' : 'Digite uma mensagem'}
             disabled={!canSend}
-            className="hide-scrollbar max-h-[120px] flex-1 resize-none rounded-2xl border border-line bg-mist/60 px-4 py-2.5 text-sm leading-relaxed text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-white focus:ring-2 focus:ring-signal/20 disabled:opacity-50"
+            className="hide-scrollbar max-h-[120px] flex-1 resize-none rounded-lg bg-white px-4 py-2.5 text-[15px] leading-relaxed text-[#111b21] outline-none placeholder:text-[#8696a0] disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={!canSend || sendMessage.isPending || sendMedia.isPending}
-            className={`rounded-full bg-signal px-5 py-2.5 text-sm font-semibold text-ink hover:bg-signal/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 disabled:opacity-50 ${PRESS}`}
+            aria-label="Enviar mensagem"
+            title="Enviar mensagem"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-white hover:bg-[#029877] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/50 disabled:opacity-50 ${PRESS}`}
           >
-            {sendMessage.isPending || sendMedia.isPending ? 'Enviando…' : 'Enviar'}
+            {sendMessage.isPending || sendMedia.isPending ? (
+              <SendingSpinner />
+            ) : (
+              <SendIcon />
+            )}
           </button>
         </div>
       </form>
@@ -338,6 +350,44 @@ export function MessageThread({ conversation, inboxType, onBack, onOpenDetails }
       {lightboxTarget && <MediaLightbox target={lightboxTarget} onClose={() => setLightboxTarget(null)} />}
       <PixComposerModal open={pixModalOpen} conversationId={conversation.id} onClose={() => setPixModalOpen(false)} />
     </section>
+  );
+}
+
+/** WhatsApp-style delivery ticks for an outbound message: single grey check while only sent,
+ * double grey once delivered, double blue once read. Purely presentational — reads the existing
+ * `message.status` field, no new data or business logic involved. */
+function MessageTicks({ status }: { status: Message['status'] }) {
+  if (status === 'FAILED') {
+    return <span className="text-[11px] text-[#ea4335]">!</span>;
+  }
+  if (status === 'PENDING') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0 text-[#667781]" aria-hidden>
+        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M8 4.8V8l2.4 1.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  const isRead = status === 'READ';
+  const showDouble = status === 'DELIVERED' || status === 'READ';
+  return (
+    <svg
+      viewBox="0 0 20 14"
+      fill="none"
+      className={`h-3.5 w-4 shrink-0 ${isRead ? 'text-[#53bdeb]' : 'text-[#667781]'}`}
+      aria-hidden
+    >
+      <path d="M1 7.5 4.8 11 12 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      {showDouble && (
+        <path
+          d="M7.5 7.5 11.3 11 18.5 3"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
   );
 }
 
@@ -359,6 +409,23 @@ function CloseIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
       <path d="M5 5l10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className="h-[18px] w-[18px] translate-x-[1px]" aria-hidden>
+      <path d="M3 10 16.5 3.5 12 10l4.5 6.5L3 10Z" />
+    </svg>
+  );
+}
+
+function SendingSpinner() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 animate-spin" aria-hidden>
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2.5" />
+      <path d="M17.5 10a7.5 7.5 0 0 0-7.5-7.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }

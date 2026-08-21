@@ -90,44 +90,37 @@ export function ConversationList({
   const { today, others } = splitByToday(conversations);
 
   return (
-    <aside className="relative flex h-full w-full shrink-0 flex-col bg-ink md:w-80">
+    <aside className="relative flex h-full w-full shrink-0 flex-col border-r border-[#e9edef] bg-white md:w-[380px]">
       <Link
         to="/"
-        className="group flex items-center gap-2 px-5 pb-4 pt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
+        className="group flex items-center gap-2.5 bg-[#f0f2f5] px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60"
       >
-        <svg
-          viewBox="0 0 20 20"
-          fill="none"
-          className="h-4 w-4 shrink-0 text-white/50 transition-colors group-hover:text-white"
-          aria-hidden
-        >
-          <path d="M12.5 15 7.5 10l5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span>
-          <p className="font-display text-xl font-semibold tracking-tight text-white">Convitta</p>
-          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">
-            {INBOX_TYPE_LABEL[inboxType]}
-          </p>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00a884] font-sans text-sm font-bold text-white">
+          C
+        </span>
+        <span className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold text-[#111b21]">Convitta</p>
+          <p className="truncate text-[11px] font-medium text-[#667781]">{INBOX_TYPE_LABEL[inboxType]}</p>
         </span>
       </Link>
 
-      <div className="px-3 pb-3">
+      <div className="bg-white px-3 py-2">
         <div className="relative">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#667781]">
             <SearchIcon />
           </span>
           <input
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Buscar conversas, contatos ou mensagens"
-            className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-9 text-sm text-white outline-none placeholder:text-white/35 focus:border-signal/60 focus:ring-2 focus:ring-signal/20"
+            placeholder="Pesquisar ou começar uma nova conversa"
+            className="w-full rounded-lg bg-[#f0f2f5] py-[7px] pl-9 pr-9 text-sm text-[#111b21] outline-none placeholder:text-[#667781] focus:ring-1 focus:ring-[#00a884]/50"
           />
           {isSearchActive && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
               aria-label="Limpar busca"
-              className={`absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-white/35 hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
+              className={`absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-[#667781] hover:text-[#111b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 ${PRESS_SM}`}
             >
               <ClearIcon />
             </button>
@@ -157,7 +150,7 @@ export function ConversationList({
           onMoveConversation={onMoveConversation}
         />
       ) : (
-        <div className="flex-1 overflow-y-auto px-2 pb-4">
+        <div className="flex-1 overflow-y-auto bg-white pb-4">
           {today.length > 0 && (
             <ul>
               <ConversationGroupHeader label="Hoje" />
@@ -197,7 +190,9 @@ export function ConversationList({
 }
 
 function ConversationGroupHeader({ label }: { label: string }) {
-  return <li className="px-3 pb-1.5 pt-3 text-[10px] font-semibold uppercase tracking-wide text-white/40">{label}</li>;
+  return (
+    <li className="bg-[#f7f8f9] px-4 pb-1.5 pt-2 text-[12px] font-medium text-[#667781]">{label}</li>
+  );
 }
 
 function SearchIcon() {

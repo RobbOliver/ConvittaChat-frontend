@@ -16,17 +16,21 @@ interface Props {
 }
 
 function chipClasses(isActive: boolean, isDragOver: boolean) {
-  if (isActive) return 'bg-signal text-ink';
-  if (isDragOver) return 'bg-white/25 text-white ring-2 ring-signal';
-  return 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white';
+  if (isActive) return 'bg-[#00a884] text-white';
+  if (isDragOver) return 'bg-[#00a884]/15 text-[#00a884] ring-2 ring-[#00a884]';
+  return 'bg-[#f0f2f5] text-[#54656f] hover:bg-[#e9edef] hover:text-[#111b21]';
 }
 
-/** Small discreet unread-count pill — a white dot with the number, legible on both the plain
- * dark chip and the amber "active" chip without competing with either for attention. */
-function UnreadBadge({ count }: { count: number }) {
+/** Small discreet unread-count pill — legible on both the plain grey chip and the green "active"
+ * chip without competing with either for attention. */
+function UnreadBadge({ count, isActive }: { count: number; isActive: boolean }) {
   if (count <= 0) return null;
   return (
-    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-semibold leading-none text-ink">
+    <span
+      className={`ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none ${
+        isActive ? 'bg-white text-[#00a884]' : 'bg-[#00a884] text-white'
+      }`}
+    >
       {formatBadgeCount(count)}
     </span>
   );
@@ -78,7 +82,7 @@ export function TabBar({
         className={`flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === null, dragOverTabId === null)}`}
       >
         All
-        <UnreadBadge count={unreadTotal} />
+        <UnreadBadge count={unreadTotal} isActive={activeTabId === null} />
       </button>
 
       {tabs.map((tab) => (
@@ -92,13 +96,15 @@ export function TabBar({
             className={`flex items-center rounded-full py-1.5 pl-3 pr-6 text-xs font-semibold ${PRESS} ${chipClasses(activeTabId === tab.id, dragOverTabId === tab.id)}`}
           >
             {tab.name}
-            <UnreadBadge count={unreadByTab[tab.id] ?? 0} />
+            <UnreadBadge count={unreadByTab[tab.id] ?? 0} isActive={activeTabId === tab.id} />
           </button>
           <button
             type="button"
             onClick={() => onDeleteTab(tab.id)}
             aria-label={`Excluir aba ${tab.name}`}
-            className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-white/40 opacity-0 hover:text-white group-hover:opacity-100 ${PRESS_SM}`}
+            className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 opacity-0 group-hover:opacity-100 ${PRESS_SM} ${
+              activeTabId === tab.id ? 'text-white/60 hover:text-white' : 'text-[#54656f]/60 hover:text-[#111b21]'
+            }`}
           >
             <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden>
               <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -117,7 +123,7 @@ export function TabBar({
               if (!draftName.trim()) setCreating(false);
             }}
             placeholder="Nome da aba"
-            className="w-28 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white outline-none placeholder:text-white/40 focus:bg-white/15"
+            className="w-28 rounded-full bg-[#f0f2f5] px-3 py-1.5 text-xs text-[#111b21] outline-none placeholder:text-[#8696a0] focus:bg-[#e9edef]"
           />
         </form>
       ) : (
@@ -125,7 +131,7 @@ export function TabBar({
           type="button"
           onClick={() => setCreating(true)}
           aria-label="Criar aba"
-          className={`shrink-0 rounded-full bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/50 hover:bg-white/10 hover:text-white ${PRESS}`}
+          className={`shrink-0 rounded-full bg-[#f0f2f5] px-2.5 py-1.5 text-xs font-semibold text-[#54656f] hover:bg-[#e9edef] hover:text-[#111b21] ${PRESS}`}
         >
           +
         </button>
