@@ -19,7 +19,7 @@ export function Toggle({ checked, onChange, disabled, label }: Props) {
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative h-6 w-11 shrink-0 rounded-full disabled:opacity-50 ${PRESS_SM} ${
-        checked ? 'bg-signal' : 'bg-line'
+        checked ? 'bg-signal' : 'bg-line dark:bg-[#3a3b45]'
       }`}
     >
       <span

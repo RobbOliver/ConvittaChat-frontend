@@ -85,14 +85,16 @@ export function WhatsappConnectModal({ open, onClose, watchSessionId }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl"
+        className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl dark:bg-[#1a1b21]"
         onClick={(event) => event.stopPropagation()}
       >
         {!sessionId && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <h2 className="font-display text-lg font-semibold text-ink">Conectar WhatsApp</h2>
-              <p className="mt-1 text-sm text-ink/50">Dê um nome pra esse número, pra identificar depois.</p>
+              <h2 className="font-display text-lg font-semibold text-ink dark:text-[#ececed]">Conectar WhatsApp</h2>
+              <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
+                Dê um nome pra esse número, pra identificar depois.
+              </p>
             </div>
             <input
               autoFocus
@@ -100,14 +102,14 @@ export function WhatsappConnectModal({ open, onClose, watchSessionId }: Props) {
               onChange={(event) => setLabel(event.target.value)}
               placeholder="Ex.: Vendas SP"
               required
-              className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+              className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
             />
             {error && <p className="text-sm text-stage-lost">{error}</p>}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className={`rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-mist ${PRESS}`}
+                className={`rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-mist dark:text-[#ececed]/60 dark:hover:bg-[#24252e] ${PRESS}`}
               >
                 Cancelar
               </button>
@@ -124,20 +126,24 @@ export function WhatsappConnectModal({ open, onClose, watchSessionId }: Props) {
 
         {sessionId && (
           <div className="text-center">
-            <h2 className="font-display text-lg font-semibold text-ink">Escaneie o QR code</h2>
-            <p className="mt-1 text-sm text-ink/50">
+            <h2 className="font-display text-lg font-semibold text-ink dark:text-[#ececed]">Escaneie o QR code</h2>
+            <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
               No WhatsApp do celular: Configurações → Aparelhos conectados → Conectar aparelho.
             </p>
-            <div className="mx-auto my-5 flex h-56 w-56 items-center justify-center rounded-xl bg-mist">
+            <div className="mx-auto my-5 flex h-56 w-56 items-center justify-center rounded-xl bg-mist dark:bg-[#24252e]">
               {status === 'CONNECTED' ? (
                 <p className="text-sm font-medium text-stage-won">Conectado!</p>
               ) : qr ? (
-                <img src={qr} alt="QR code para conectar o WhatsApp" className="h-full w-full rounded-lg" />
+                <img src={qr} alt="QR code para conectar o WhatsApp" className="h-full w-full rounded-lg bg-white p-2" />
               ) : (
-                <p className="text-sm text-ink/40">Gerando QR…</p>
+                <p className="text-sm text-ink/40 dark:text-[#ececed]/40">Gerando QR…</p>
               )}
             </div>
-            <button type="button" onClick={onClose} className={`text-sm text-ink/50 hover:text-ink ${PRESS}`}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={`text-sm text-ink/50 hover:text-ink dark:text-[#ececed]/50 dark:hover:text-[#ececed] ${PRESS}`}
+            >
               Fechar
             </button>
           </div>

@@ -132,15 +132,15 @@ export function AiSettings() {
   }
 
   const inputClass =
-    'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20';
-  const labelClass = 'mb-1 block text-xs font-medium text-ink/50';
+    'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]';
+  const labelClass = 'mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50';
 
   return (
     <div className="max-w-xl space-y-6">
-      <div className="flex items-center justify-between rounded-lg border border-line bg-white px-3 py-3">
+      <div className="flex items-center justify-between rounded-lg border border-line bg-white px-3 py-3 dark:border-[#34353f] dark:bg-[#1a1b21]">
         <div>
-          <p className="text-sm font-semibold text-ink">Resposta automática</p>
-          <p className="text-xs text-ink/50">
+          <p className="text-sm font-semibold text-ink dark:text-[#ececed]">Resposta automática</p>
+          <p className="text-xs text-ink/50 dark:text-[#ececed]/50">
             Quando ativado, a IA responde sozinha em conversas individuais (nunca em grupos). Pode ser
             desligado por conversa também, no painel de contato.
           </p>
@@ -190,9 +190,9 @@ export function AiSettings() {
           />
         </label>
 
-        <div className="rounded-lg border border-line bg-white px-3 py-3">
+        <div className="rounded-lg border border-line bg-white px-3 py-3 dark:border-[#34353f] dark:bg-[#1a1b21]">
           <span className={labelClass}>Horário de funcionamento</span>
-          <p className="mb-2 text-xs text-ink/40">
+          <p className="mb-2 text-xs text-ink/40 dark:text-[#ececed]/40">
             Isto é o que o sistema realmente confere — a IA nunca confirma um pedido pra um horário
             fora daqui, mesmo que o cliente insista, e é o mesmo texto que ela mostra pro cliente
             quando perguntam o horário.
@@ -206,7 +206,7 @@ export function AiSettings() {
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${PRESS_SM} ${
                   hoursDays.includes(day)
                     ? 'border-signal bg-signal text-ink'
-                    : 'border-line bg-paper text-ink/50 hover:bg-mist'
+                    : 'border-line bg-paper text-ink/50 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/50 dark:hover:bg-[#24252e]'
                 }`}
               >
                 {label}
@@ -223,7 +223,7 @@ export function AiSettings() {
               }}
               className={`${inputClass} w-auto`}
             />
-            <span className="text-sm text-ink/40">até</span>
+            <span className="text-sm text-ink/40 dark:text-[#ececed]/40">até</span>
             <input
               type="time"
               value={hoursEnd}
@@ -235,7 +235,7 @@ export function AiSettings() {
             />
           </div>
           {hoursDays.length === 0 && (
-            <p className="mt-2 text-xs text-ink/40">
+            <p className="mt-2 text-xs text-ink/40 dark:text-[#ececed]/40">
               Nenhum dia selecionado — sem isso, o sistema não bloqueia nenhum horário nem mostra um
               horário de funcionamento pro cliente.
             </p>
@@ -308,7 +308,7 @@ export function AiSettings() {
             placeholder="O que a IA deve buscar por padrão em toda conversa — ex.: confirmar endereço e fechar pedido"
             className={inputClass}
           />
-          <span className="mt-1 block text-xs text-ink/40">
+          <span className="mt-1 block text-xs text-ink/40 dark:text-[#ececed]/40">
             Vale pra todos os contatos automaticamente. Dá pra ajustar pontualmente por contato no
             painel de cada conversa — o ajuste específico sempre tem prioridade sobre este aqui.
           </span>
@@ -348,12 +348,12 @@ export function AiSettings() {
           >
             {updateAiConfig.isPending ? 'Salvando…' : 'Salvar'}
           </button>
-          {saved && <span className="text-sm text-ink/50">Salvo.</span>}
+          {saved && <span className="text-sm text-ink/50 dark:text-[#ececed]/50">Salvo.</span>}
         </div>
         {error && <p className="text-sm text-stage-lost">{error}</p>}
       </form>
 
-      <p className="text-xs text-ink/40">
+      <p className="text-xs text-ink/40 dark:text-[#ececed]/40">
         Proteções ativas por padrão, não configuráveis: bloqueio de tentativas de manipulação do
         assistente, verificação de preços e itens contra o catálogo cadastrado, e isolamento entre a
         mensagem do cliente e as instruções da IA.

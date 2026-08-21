@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { ConversationList } from '../components/inbox/ConversationList';
 import { ContactDetailsPanel } from '../components/inbox/ContactDetailsPanel';
 import { MessageThread } from '../components/inbox/MessageThread';
+import { useTheme } from '../contexts/ThemeContext';
 import { useConversation } from '../hooks/useConversation';
 import { useConversations } from '../hooks/useConversations';
 import { useContactTabs, useCreateContactTab, useDeleteContactTab } from '../hooks/useContactTabs';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { useInboxTheme } from '../hooks/useInboxTheme';
 import { useMoveConversation } from '../hooks/useMoveConversation';
 import { useSearchConversations } from '../hooks/useSearchConversations';
 import { useSyncingSessions } from '../hooks/useWhatsappSessions';
 
 export function InboxPage() {
-  const { theme, toggleTheme } = useInboxTheme();
+  const { theme, toggleTheme } = useTheme();
   const { data: conversations, isLoading } = useConversations();
   const { data: currentUser } = useCurrentUser();
   const inboxType = currentUser?.inboxType ?? 'SECTOR';
@@ -86,7 +86,7 @@ export function InboxPage() {
   }
 
   return (
-    <div className={`flex h-svh flex-col bg-paper text-ink md:flex-row ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className="flex h-svh flex-col bg-paper text-ink dark:bg-[#1a1b21] dark:text-[#ececed] md:flex-row">
       <div
         className={`${mobileView === 'list' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col md:flex md:flex-none dark:bg-[#1a1b21]`}
       >

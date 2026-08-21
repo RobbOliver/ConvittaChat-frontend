@@ -30,10 +30,10 @@ export function SalesFieldDefinitions() {
 
   return (
     <div>
-      {isLoading && <p className="text-sm text-ink/40">Carregando…</p>}
+      {isLoading && <p className="text-sm text-ink/40 dark:text-[#ececed]/40">Carregando…</p>}
 
       {!isLoading && definitions && definitions.length === 0 && (
-        <p className="mb-3 text-sm text-ink/40">Nenhum campo cadastrado ainda.</p>
+        <p className="mb-3 text-sm text-ink/40 dark:text-[#ececed]/40">Nenhum campo cadastrado ainda.</p>
       )}
 
       {!isLoading && definitions && definitions.length > 0 && (
@@ -49,7 +49,7 @@ export function SalesFieldDefinitions() {
           value={draftKey}
           onChange={(event) => setDraftKey(event.target.value)}
           placeholder="Nova chave (ex.: endereço)"
-          className="flex-1 rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+          className="flex-1 rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
         />
         <button
           type="submit"
@@ -84,18 +84,18 @@ function DefinitionRow({ definition }: { definition: ContactFieldDefinition }) {
   }
 
   return (
-    <li className="flex items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2">
+    <li className="flex items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2 dark:border-[#34353f] dark:bg-[#1a1b21]">
       <input
         value={key}
         onChange={(event) => setKey(event.target.value)}
         onBlur={handleBlur}
-        className="flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+        className="flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed] dark:focus:border-[#34353f]"
       />
       <button
         type="button"
         onClick={() => deleteDefinition.mutate(definition.id)}
         aria-label={`Remover campo ${definition.key}`}
-        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost ${PRESS_SM}`}
+        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost dark:text-[#ececed]/30 ${PRESS_SM}`}
       >
         <CloseIcon />
       </button>

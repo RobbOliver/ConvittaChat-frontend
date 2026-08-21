@@ -86,12 +86,14 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-paper p-6 shadow-xl"
+        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-paper p-6 shadow-xl dark:bg-[#1a1b21]"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">{item.name}</p>
-        <h2 className="mt-1 font-display text-lg font-semibold text-ink">Tamanhos e preços</h2>
-        <p className="mt-1 text-xs text-ink/40">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/40 dark:text-[#ececed]/40">
+          {item.name}
+        </p>
+        <h2 className="mt-1 font-display text-lg font-semibold text-ink dark:text-[#ececed]">Tamanhos e preços</h2>
+        <p className="mt-1 text-xs text-ink/40 dark:text-[#ececed]/40">
           Cada tamanho tem seu próprio preço — a IA vai oferecer exatamente essas opções, sem
           precisar calcular nada.
         </p>
@@ -104,7 +106,7 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
                 value={row.label}
                 onChange={(e) => updateRow(index, { label: e.target.value })}
                 placeholder="Ex.: P"
-                className="w-20 min-w-0 rounded-lg border border-line px-2 py-1.5 text-sm text-ink outline-none focus:border-signal"
+                className="w-20 min-w-0 rounded-lg border border-line px-2 py-1.5 text-sm text-ink outline-none focus:border-signal dark:border-[#34353f] dark:text-[#ececed]"
               />
               <input
                 type="text"
@@ -112,14 +114,14 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
                 onChange={(e) => updateRow(index, { price: e.target.value })}
                 placeholder="0,00"
                 inputMode="decimal"
-                className="flex-1 rounded-lg border border-line px-2 py-1.5 text-right font-mono text-sm text-ink outline-none focus:border-signal"
+                className="flex-1 rounded-lg border border-line px-2 py-1.5 text-right font-mono text-sm text-ink outline-none focus:border-signal dark:border-[#34353f] dark:text-[#ececed]"
               />
               <button
                 type="button"
                 onClick={() => setRows((rs) => rs.filter((_, i) => i !== index))}
                 title="Remover tamanho"
                 disabled={rows.length === 1}
-                className="shrink-0 text-ink/40 hover:text-stage-lost disabled:opacity-30"
+                className="shrink-0 text-ink/40 hover:text-stage-lost disabled:opacity-30 dark:text-[#ececed]/40"
               >
                 ×
               </button>
@@ -130,7 +132,7 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
         <button
           type="button"
           onClick={() => setRows((rs) => [...rs, emptyRow()])}
-          className={`mt-3 rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`mt-3 rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
         >
           + tamanho
         </button>
@@ -141,7 +143,7 @@ export function CatalogItemSizesModal({ item, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-full border border-line px-4 py-2 text-sm font-medium text-ink/60 hover:bg-mist ${PRESS_SM}`}
+            className={`rounded-full border border-line px-4 py-2 text-sm font-medium text-ink/60 hover:bg-mist dark:border-[#34353f] dark:text-[#ececed]/60 dark:hover:bg-[#24252e] ${PRESS_SM}`}
           >
             Cancelar
           </button>

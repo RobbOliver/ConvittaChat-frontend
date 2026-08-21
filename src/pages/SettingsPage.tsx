@@ -45,17 +45,17 @@ export function SettingsPage() {
   const current = user?.inboxType ?? 'SECTOR';
 
   return (
-    <div className="flex h-svh bg-paper text-ink">
+    <div className="flex h-svh bg-paper text-ink dark:bg-[#1a1b21] dark:text-[#ececed]">
       <SidebarNav active="settings" />
 
       <main className="flex-1 overflow-y-auto px-8 py-8">
         <div className="mx-auto max-w-3xl">
-          <h1 className="font-display text-2xl font-semibold text-ink">Configurações</h1>
-          <p className="mt-1 text-sm text-ink/50">Ajuste como o Convitta funciona para você.</p>
+          <h1 className="font-display text-2xl font-semibold text-ink dark:text-[#ececed]">Configurações</h1>
+          <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">Ajuste como o Convitta funciona para você.</p>
 
           <section className="mt-8">
-            <h2 className="font-display text-lg font-semibold text-ink">Tipo de Inbox</h2>
-            <p className="mt-1 text-sm text-ink/50">
+            <h2 className="font-display text-lg font-semibold text-ink dark:text-[#ececed]">Tipo de Inbox</h2>
+            <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
               Define o layout e as configurações do Inbox. O padrão é Inbox por Setor.
             </p>
 
@@ -72,14 +72,16 @@ export function SettingsPage() {
                     }}
                     aria-pressed={isSelected}
                     className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-4 text-left disabled:opacity-60 ${PRESS} ${
-                      isSelected ? 'border-signal bg-signal/10' : 'border-line bg-paper hover:bg-mist'
+                      isSelected
+                        ? 'border-signal bg-signal/10'
+                        : 'border-line bg-paper hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:hover:bg-[#24252e]'
                     }`}
                   >
                     <span className="flex w-full items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-ink">{option.title}</span>
+                      <span className="text-sm font-semibold text-ink dark:text-[#ececed]">{option.title}</span>
                       {isSelected && <CheckIcon />}
                     </span>
-                    <span className="text-xs text-ink/50">{option.description}</span>
+                    <span className="text-xs text-ink/50 dark:text-[#ececed]/50">{option.description}</span>
                   </button>
                 );
               })}
@@ -90,8 +92,8 @@ export function SettingsPage() {
             )}
           </section>
 
-          <section className="mt-8 border-t border-line pt-8">
-            <h2 className="font-display text-lg font-semibold text-ink">
+          <section className="mt-8 border-t border-line pt-8 dark:border-[#34353f]">
+            <h2 className="font-display text-lg font-semibold text-ink dark:text-[#ececed]">
               Configurações do {INBOX_TYPE_LABEL[current]}
             </h2>
 
@@ -109,8 +111,8 @@ export function SettingsPage() {
                         onClick={() => setActiveTab(tab.value)}
                         className={`rounded-full border px-4 py-1.5 text-sm font-medium ${PRESS} ${
                           isActive
-                            ? 'border-signal bg-signal/10 text-ink'
-                            : 'border-line bg-paper text-ink/60 hover:bg-mist'
+                            ? 'border-signal bg-signal/10 text-ink dark:text-[#ececed]'
+                            : 'border-line bg-paper text-ink/60 hover:bg-mist dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]/60 dark:hover:bg-[#24252e]'
                         }`}
                       >
                         {tab.label}
@@ -122,8 +124,10 @@ export function SettingsPage() {
                 <div className="mt-6">
                   {activeTab === 'geral' && (
                     <>
-                      <h3 className="font-display text-base font-semibold text-ink">Configurações gerais</h3>
-                      <p className="mt-1 text-sm text-ink/50">
+                      <h3 className="font-display text-base font-semibold text-ink dark:text-[#ececed]">
+                        Configurações gerais
+                      </h3>
+                      <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
                         Persona, horário e regras de segurança valem para todos os passos do fluxo de IA.
                       </p>
                       <div className="mt-4">
@@ -134,8 +138,8 @@ export function SettingsPage() {
                   {activeTab === 'fluxo' && <AiFlowTab />}
                   {activeTab === 'catalogo' && (
                     <>
-                      <h3 className="font-display text-base font-semibold text-ink">Catálogo</h3>
-                      <p className="mt-1 text-sm text-ink/50">
+                      <h3 className="font-display text-base font-semibold text-ink dark:text-[#ececed]">Catálogo</h3>
+                      <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
                         Produtos, serviços ou itens que a IA pode citar e vender — ela nunca menciona preço
                         ou item fora desta lista.
                       </p>
@@ -146,8 +150,8 @@ export function SettingsPage() {
                   )}
                   {activeTab === 'campos' && (
                     <>
-                      <h3 className="font-display text-base font-semibold text-ink">Campos</h3>
-                      <p className="mt-1 text-sm text-ink/50">
+                      <h3 className="font-display text-base font-semibold text-ink dark:text-[#ececed]">Campos</h3>
+                      <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
                         Campos personalizados disponíveis para todos os contatos — cada contato preenche seu
                         próprio valor na aba lateral do chat.
                       </p>
@@ -158,8 +162,8 @@ export function SettingsPage() {
                   )}
                   {activeTab === 'pix' && (
                     <>
-                      <h3 className="font-display text-base font-semibold text-ink">Pix</h3>
-                      <p className="mt-1 text-sm text-ink/50">
+                      <h3 className="font-display text-base font-semibold text-ink dark:text-[#ececed]">Pix</h3>
+                      <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
                         Configure sua chave Pix uma vez para poder enviar cobranças facilitadas em qualquer
                         conversa.
                       </p>
@@ -171,7 +175,9 @@ export function SettingsPage() {
                 </div>
               </>
             ) : (
-              <p className="mt-1 text-sm text-ink/50">Nenhuma configuração disponível para o Inbox por Setor ainda.</p>
+              <p className="mt-1 text-sm text-ink/50 dark:text-[#ececed]/50">
+                Nenhuma configuração disponível para o Inbox por Setor ainda.
+              </p>
             )}
           </section>
         </div>

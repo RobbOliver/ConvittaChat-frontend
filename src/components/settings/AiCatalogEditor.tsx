@@ -90,10 +90,10 @@ export function AiCatalogEditor() {
 
   return (
     <div>
-      {isLoading && <p className="text-sm text-ink/40">Carregando…</p>}
+      {isLoading && <p className="text-sm text-ink/40 dark:text-[#ececed]/40">Carregando…</p>}
 
       {!isLoading && items && items.length === 0 && (
-        <p className="mb-3 text-sm text-ink/40">Nenhum item cadastrado ainda.</p>
+        <p className="mb-3 text-sm text-ink/40 dark:text-[#ececed]/40">Nenhum item cadastrado ainda.</p>
       )}
 
       {!isLoading && items && items.length > 0 && (
@@ -101,7 +101,7 @@ export function AiCatalogEditor() {
           {groups.map((group) => (
             <div key={group.category ?? '__none__'}>
               {group.category !== null || groups.length > 1 ? (
-                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/35">
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/35 dark:text-[#ececed]/35">
                   {group.category ?? 'Sem categoria'}
                 </p>
               ) : null}
@@ -117,46 +117,46 @@ export function AiCatalogEditor() {
 
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
         <label className="min-w-[160px] flex-1">
-          <span className="mb-1 block text-xs font-medium text-ink/50">Nome</span>
+          <span className="mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50">Nome</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex.: Corte masculino"
-            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
           />
         </label>
         <label className="min-w-[160px] flex-1">
-          <span className="mb-1 block text-xs font-medium text-ink/50">Descrição (opcional)</span>
+          <span className="mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50">Descrição (opcional)</span>
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Ex.: Corte + acabamento"
-            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
           />
         </label>
         <label className="min-w-[140px] flex-1">
-          <span className="mb-1 block text-xs font-medium text-ink/50">Categoria (opcional)</span>
+          <span className="mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50">Categoria (opcional)</span>
           <input
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="Ex.: Bebidas"
             list="catalog-categories"
-            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+            className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
           />
         </label>
         <div>
-          <span className="mb-1 block text-xs font-medium text-ink/50">Preço</span>
+          <span className="mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50">Preço</span>
           <PricingModeToggle value={pricingMode} onChange={setPricingMode} />
         </div>
         {pricingMode === 'FLAT' && (
           <label className="w-28">
-            <span className="mb-1 block text-xs font-medium text-ink/50">Preço (R$)</span>
+            <span className="mb-1 block text-xs font-medium text-ink/50 dark:text-[#ececed]/50">Preço (R$)</span>
             <input
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0,00"
               inputMode="decimal"
-              className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+              className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 dark:border-[#34353f] dark:bg-[#1a1b21] dark:text-[#ececed]"
             />
           </label>
         )}
@@ -169,7 +169,7 @@ export function AiCatalogEditor() {
         </button>
       </form>
       {pricingMode === 'BY_SIZE' && (
-        <p className="mt-2 text-xs text-ink/40">
+        <p className="mt-2 text-xs text-ink/40 dark:text-[#ececed]/40">
           Depois de adicionar, vamos abrir um popup pra você cadastrar os tamanhos e preços.
         </p>
       )}
@@ -179,7 +179,7 @@ export function AiCatalogEditor() {
         ))}
       </datalist>
       {error && <p className="mt-2 text-sm text-stage-lost">{error}</p>}
-      <p className="mt-2 text-xs text-ink/40">
+      <p className="mt-2 text-xs text-ink/40 dark:text-[#ececed]/40">
         Categoria é opcional — usa pra agrupar itens (ex.: "Bebidas", "Marmitas") e a IA passa a
         enxergar essa organização, podendo ser referenciada nas instruções de um passo do fluxo
         (ex.: "ofereça algo da categoria Bebidas se o pedido não tiver nenhuma").
@@ -200,14 +200,16 @@ function PricingModeToggle({
   onChange: (mode: AiCatalogPricingMode) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full border border-line p-0.5">
+    <div className="inline-flex rounded-full border border-line p-0.5 dark:border-[#34353f]">
       {(['FLAT', 'BY_SIZE'] as const).map((mode) => (
         <button
           key={mode}
           type="button"
           onClick={() => onChange(mode)}
           className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-            value === mode ? 'bg-signal text-ink' : 'text-ink/50 hover:text-ink'
+            value === mode
+              ? 'bg-signal text-ink'
+              : 'text-ink/50 hover:text-ink dark:text-[#ececed]/50 dark:hover:text-[#ececed]'
           }`}
         >
           {mode === 'FLAT' ? 'Por item' : 'Por tamanho'}
@@ -262,19 +264,19 @@ function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: 
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2">
+    <li className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2 dark:border-[#34353f] dark:bg-[#1a1b21]">
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
         onBlur={saveIfChanged}
-        className="min-w-[120px] flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+        className="min-w-[120px] flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium text-ink outline-none focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed] dark:focus:border-[#34353f]"
       />
       <input
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         onBlur={saveIfChanged}
         placeholder="Descrição"
-        className="min-w-[120px] flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1"
+        className="min-w-[120px] flex-1 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed]/60 dark:placeholder:text-[#ececed]/30 dark:focus:border-[#34353f]"
       />
       <input
         value={category}
@@ -282,7 +284,7 @@ function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: 
         onBlur={saveIfChanged}
         placeholder="Categoria"
         list="catalog-categories"
-        className="w-28 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1"
+        className="w-28 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-sm text-ink/60 outline-none placeholder:text-ink/30 focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed]/60 dark:placeholder:text-[#ececed]/30 dark:focus:border-[#34353f]"
       />
       <PricingModeToggle
         value={item.pricingMode}
@@ -297,13 +299,13 @@ function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: 
           onChange={(e) => setPrice(e.target.value)}
           onBlur={saveIfChanged}
           inputMode="decimal"
-          className="w-20 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-right font-mono text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1"
+          className="w-20 shrink-0 rounded-md border border-transparent bg-transparent px-0 py-0.5 text-right font-mono text-sm text-ink outline-none focus:border-line focus:px-1.5 focus:py-1 dark:text-[#ececed] dark:focus:border-[#34353f]"
         />
       ) : item.sizes.length > 0 ? (
         <button
           type="button"
           onClick={onManageSizes}
-          className={`shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-medium text-ink/70 hover:bg-mist ${PRESS_SM}`}
+          className={`shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-medium text-ink/70 hover:bg-mist dark:border-[#34353f] dark:text-[#ececed]/70 dark:hover:bg-[#24252e] ${PRESS_SM}`}
           title={item.sizes.map((s) => `${s.label} R$ ${formatReais(s.priceCents)}`).join(' · ')}
         >
           {item.sizes.map((s) => `${s.label} R$ ${formatReais(s.priceCents)}`).join(' · ')}
@@ -312,7 +314,7 @@ function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: 
         <button
           type="button"
           onClick={onManageSizes}
-          className={`shrink-0 rounded-full border border-stage-lost/40 bg-stage-lost/10 px-2.5 py-1 text-xs font-medium text-stage-lost hover:bg-stage-lost/20 ${PRESS_SM}`}
+          className={`shrink-0 rounded-full border border-stage-lost/40 bg-stage-lost/10 px-2.5 py-1 text-xs font-medium text-stage-lost hover:bg-stage-lost/20 dark:bg-stage-lost/15 dark:hover:bg-stage-lost/25 ${PRESS_SM}`}
         >
           Sem tamanhos cadastrados
         </button>
@@ -326,7 +328,7 @@ function ItemRow({ item, onManageSizes }: { item: AiCatalogItem; onManageSizes: 
         type="button"
         onClick={() => deleteItem.mutate(item.id)}
         aria-label={`Remover ${item.name}`}
-        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost ${PRESS_SM}`}
+        className={`shrink-0 rounded-full p-1 text-ink/30 hover:text-stage-lost dark:text-[#ececed]/30 ${PRESS_SM}`}
       >
         <CloseIcon />
       </button>

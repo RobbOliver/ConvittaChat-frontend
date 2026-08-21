@@ -7,15 +7,15 @@ const LABELS: Record<WhatsappSessionStatus, string> = {
 };
 
 const STYLES: Record<WhatsappSessionStatus, string> = {
-  PENDING_QR: 'bg-stage-progress-soft text-stage-progress',
-  CONNECTED: 'bg-stage-won-soft text-stage-won',
-  DISCONNECTED: 'bg-mist text-ink/40',
+  PENDING_QR: 'bg-stage-progress-soft text-stage-progress dark:bg-[#3a2f1f] dark:text-[#e8a33d]',
+  CONNECTED: 'bg-stage-won-soft text-stage-won dark:bg-[#173129] dark:text-[#34d399]',
+  DISCONNECTED: 'bg-mist text-ink/40 dark:bg-[#24252e] dark:text-[#ececed]/40',
 };
 
 const DOT: Record<WhatsappSessionStatus, string> = {
   PENDING_QR: 'bg-stage-progress',
   CONNECTED: 'bg-stage-won',
-  DISCONNECTED: 'bg-ink/30',
+  DISCONNECTED: 'bg-ink/30 dark:bg-[#ececed]/30',
 };
 
 export function SessionStatusBadge({ status }: { status: WhatsappSessionStatus }) {

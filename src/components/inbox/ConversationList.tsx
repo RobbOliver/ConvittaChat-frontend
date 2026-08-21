@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { InboxTheme } from '../../hooks/useInboxTheme';
+import type { AppTheme } from '../../contexts/ThemeContext';
 import { PRESS_SM } from '../../lib/interactions';
 import type { ContactTab, ConversationSummary, InboxSearchResults, InboxType } from '../../types';
 import { ConversationRow } from './ConversationRow';
@@ -38,7 +38,7 @@ const INBOX_TYPE_LABEL: Record<InboxType, string> = {
 
 interface Props {
   inboxType: InboxType;
-  theme: InboxTheme;
+  theme: AppTheme;
   onToggleTheme: () => void;
   conversations: ConversationSummary[];
   searchResults: InboxSearchResults | undefined;
