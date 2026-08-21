@@ -72,7 +72,7 @@ export function NewChatButton({ onStarted }: Props) {
           onClick={() => setDialOpen((value) => !value)}
           aria-label={dialOpen ? 'Fechar menu' : 'Nova mensagem'}
           title={dialOpen ? 'Fechar menu' : 'Nova mensagem'}
-          className={`flex h-14 w-14 items-center justify-center rounded-full bg-[#00a884] text-white shadow-lg shadow-black/25 hover:scale-105 hover:bg-[#029877] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 focus-visible:ring-offset-2 ${PRESS}`}
+          className={`flex h-12 w-12 items-center justify-center rounded-full bg-signal text-ink shadow-lg shadow-ink/30 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${PRESS}`}
         >
           <span
             className={`transition-transform duration-150 ${dialOpen ? 'rotate-45' : 'rotate-0'}`}
@@ -110,7 +110,7 @@ function DialOption({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#54656f] shadow-lg shadow-black/20 transition-all duration-150 hover:scale-105 hover:text-[#111b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 focus-visible:ring-offset-2 ${PRESS_SM} ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full bg-paper text-ink shadow-lg shadow-ink/30 transition-all duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${PRESS_SM} ${
         entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
       }`}
     >
@@ -211,7 +211,7 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nome ou número"
-          className="mt-3 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-[#00a884] focus:ring-2 focus:ring-[#00a884]/20"
+          className="mt-3 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
         />
 
         <div className="mt-3 flex rounded-full bg-mist p-1 text-sm font-medium">
@@ -280,7 +280,7 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
                 <select
                   value={sessionId}
                   onChange={(event) => setSessionId(event.target.value)}
-                  className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-[#00a884] focus:ring-2 focus:ring-[#00a884]/20"
+                  className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
                 >
                   {connectedSessions.map((session) => (
                     <option key={session.id} value={session.id}>
@@ -293,7 +293,7 @@ function NewChatModal({ onClose, onStarted }: { onClose: () => void; onStarted: 
               <button
                 type="submit"
                 disabled={startConversation.isPending}
-                className={`w-full rounded-full bg-[#00a884] px-4 py-2 text-sm font-semibold text-white hover:bg-[#029877] disabled:opacity-60 ${PRESS}`}
+                className={`w-full rounded-full bg-signal px-4 py-2 text-sm font-semibold text-ink hover:bg-signal/90 disabled:opacity-60 ${PRESS}`}
               >
                 {startConversation.isPending ? 'Verificando…' : `Iniciar conversa com ${digits}`}
               </button>

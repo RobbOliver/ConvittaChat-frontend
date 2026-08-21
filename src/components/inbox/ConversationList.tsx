@@ -90,37 +90,44 @@ export function ConversationList({
   const { today, others } = splitByToday(conversations);
 
   return (
-    <aside className="relative flex h-full w-full shrink-0 flex-col border-r border-[#e9edef] bg-white md:w-[380px]">
+    <aside className="relative flex h-full w-full shrink-0 flex-col border-r border-line bg-paper md:w-[380px]">
       <Link
         to="/"
-        className="group flex items-center gap-2.5 bg-[#f0f2f5] px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60"
+        className="group flex items-center gap-2.5 px-5 pb-3 pt-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00a884] font-sans text-sm font-bold text-white">
-          C
-        </span>
+        <svg
+          viewBox="0 0 20 20"
+          fill="none"
+          className="h-4 w-4 shrink-0 text-ink/30 transition-colors group-hover:text-ink"
+          aria-hidden
+        >
+          <path d="M12.5 15 7.5 10l5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
         <span className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-[#111b21]">Convitta</p>
-          <p className="truncate text-[11px] font-medium text-[#667781]">{INBOX_TYPE_LABEL[inboxType]}</p>
+          <p className="truncate font-display text-xl font-semibold tracking-tight text-ink">Convitta</p>
+          <p className="mt-0.5 truncate text-[11px] font-medium uppercase tracking-[0.14em] text-ink/35">
+            {INBOX_TYPE_LABEL[inboxType]}
+          </p>
         </span>
       </Link>
 
-      <div className="bg-white px-3 py-2">
+      <div className="px-3 pb-3">
         <div className="relative">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#667781]">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35">
             <SearchIcon />
           </span>
           <input
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Pesquisar ou começar uma nova conversa"
-            className="w-full rounded-lg bg-[#f0f2f5] py-[7px] pl-9 pr-9 text-sm text-[#111b21] outline-none placeholder:text-[#667781] focus:ring-1 focus:ring-[#00a884]/50"
+            placeholder="Buscar conversas, contatos ou mensagens"
+            className="w-full rounded-full border border-line bg-mist/60 py-2 pl-9 pr-9 text-sm text-ink outline-none placeholder:text-ink/35 focus:border-signal focus:bg-paper focus:ring-2 focus:ring-signal/20"
           />
           {isSearchActive && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
               aria-label="Limpar busca"
-              className={`absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-[#667781] hover:text-[#111b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]/60 ${PRESS_SM}`}
+              className={`absolute right-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full text-ink/35 hover:text-ink/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 ${PRESS_SM}`}
             >
               <ClearIcon />
             </button>
@@ -150,7 +157,7 @@ export function ConversationList({
           onMoveConversation={onMoveConversation}
         />
       ) : (
-        <div className="flex-1 overflow-y-auto bg-white pb-4">
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
           {today.length > 0 && (
             <ul>
               <ConversationGroupHeader label="Hoje" />
@@ -190,9 +197,7 @@ export function ConversationList({
 }
 
 function ConversationGroupHeader({ label }: { label: string }) {
-  return (
-    <li className="bg-[#f7f8f9] px-4 pb-1.5 pt-2 text-[12px] font-medium text-[#667781]">{label}</li>
-  );
+  return <li className="px-3 pb-1.5 pt-3 text-[10px] font-semibold uppercase tracking-wide text-ink/35">{label}</li>;
 }
 
 function SearchIcon() {

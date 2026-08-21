@@ -16,19 +16,19 @@ interface Props {
 }
 
 function chipClasses(isActive: boolean, isDragOver: boolean) {
-  if (isActive) return 'bg-[#00a884] text-white';
-  if (isDragOver) return 'bg-[#00a884]/15 text-[#00a884] ring-2 ring-[#00a884]';
-  return 'bg-[#f0f2f5] text-[#54656f] hover:bg-[#e9edef] hover:text-[#111b21]';
+  if (isActive) return 'bg-signal text-ink';
+  if (isDragOver) return 'bg-signal-soft text-signal ring-2 ring-signal';
+  return 'bg-mist text-ink/55 hover:bg-line hover:text-ink';
 }
 
-/** Small discreet unread-count pill — legible on both the plain grey chip and the green "active"
+/** Small discreet unread-count pill — legible on both the plain grey chip and the amber "active"
  * chip without competing with either for attention. */
 function UnreadBadge({ count, isActive }: { count: number; isActive: boolean }) {
   if (count <= 0) return null;
   return (
     <span
       className={`ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none ${
-        isActive ? 'bg-white text-[#00a884]' : 'bg-[#00a884] text-white'
+        isActive ? 'bg-white text-signal' : 'bg-signal text-ink'
       }`}
     >
       {formatBadgeCount(count)}
@@ -103,7 +103,7 @@ export function TabBar({
             onClick={() => onDeleteTab(tab.id)}
             aria-label={`Excluir aba ${tab.name}`}
             className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 opacity-0 group-hover:opacity-100 ${PRESS_SM} ${
-              activeTabId === tab.id ? 'text-white/60 hover:text-white' : 'text-[#54656f]/60 hover:text-[#111b21]'
+              activeTabId === tab.id ? 'text-ink/50 hover:text-ink' : 'text-ink/35 hover:text-ink'
             }`}
           >
             <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden>
@@ -123,7 +123,7 @@ export function TabBar({
               if (!draftName.trim()) setCreating(false);
             }}
             placeholder="Nome da aba"
-            className="w-28 rounded-full bg-[#f0f2f5] px-3 py-1.5 text-xs text-[#111b21] outline-none placeholder:text-[#8696a0] focus:bg-[#e9edef]"
+            className="w-28 rounded-full bg-mist px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink/35 focus:bg-line/60"
           />
         </form>
       ) : (
@@ -131,7 +131,7 @@ export function TabBar({
           type="button"
           onClick={() => setCreating(true)}
           aria-label="Criar aba"
-          className={`shrink-0 rounded-full bg-[#f0f2f5] px-2.5 py-1.5 text-xs font-semibold text-[#54656f] hover:bg-[#e9edef] hover:text-[#111b21] ${PRESS}`}
+          className={`shrink-0 rounded-full bg-mist px-2.5 py-1.5 text-xs font-semibold text-ink/50 hover:bg-line hover:text-ink ${PRESS}`}
         >
           +
         </button>
