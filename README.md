@@ -1,5 +1,7 @@
 # ConvittaChat-frontend
 
+> ⏸️ **PROJETO PAUSADO** — o desenvolvimento do Convitta Chat está pausado desde 16/10/2026. Este repositório fica congelado no estado atual, sem novas funcionalidades ou correções previstas até nova ordem.
+
 Painel web do Convitta Chat — inbox unificado de conversas de WhatsApp para times de vendas.
 
 ## Stack
